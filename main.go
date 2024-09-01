@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,7 +12,7 @@ import (
 
 func main() {
 	l := log.New(os.Stderr, "", 0)
-  flag.Parse()
+	flag.Parse()
 
 	inputFilename := flag.Arg(0)
 	if len(inputFilename) == 0 {
@@ -21,11 +22,17 @@ func main() {
 
 	file, err := os.Open(inputFilename)
 	if err != nil {
-    l.Printf("Error opening input file: %s", err)
+		l.Printf("Error opening input file: %s", err)
 		os.Exit(1)
 	}
 	input, err := io.ReadAll(file)
 
 	lexer := lex.NewLexer(string(input))
-	lexer.Process()
+	tokens, err := lexer.Process()
+	if err != nil {
+		l.Printf("Error lexing: %s", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("tokens: %+v", tokens)
 }
