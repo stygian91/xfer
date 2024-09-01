@@ -25,7 +25,12 @@ func main() {
 		l.Printf("Error opening input file: %s", err)
 		os.Exit(1)
 	}
+
 	input, err := io.ReadAll(file)
+	if err != nil {
+		l.Printf("Error reading input file: %s", err)
+		os.Exit(1)
+	}
 
 	lexer := lex.NewLexer(string(input))
 	tokens, err := lexer.Process()
@@ -34,5 +39,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("tokens: %+v", tokens)
+	fmt.Printf("tokens: %+v\n", tokens)
 }
