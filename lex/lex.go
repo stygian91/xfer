@@ -1,6 +1,11 @@
 package lex
 
-import "fmt"
+import (
+	"fmt"
+	stditer "iter"
+
+	"github.com/stygian91/iter-go"
+)
 
 type TokenKind int
 type TokenSubkind int
@@ -73,33 +78,65 @@ func NewLexer(input string) Lexer {
 	}
 }
 
+func strIter(input string) stditer.Seq2[int, rune] {
+	return func(yield func(int, rune) bool) {
+		for i, char := range input {
+			if !yield(i, char) {
+				return
+			}
+		}
+	}
+}
+
 func (this *Lexer) Process() ([]Token, error) {
 	tokens := []Token{}
+	var line, col uint = 1, 0
 
-	// TODO: track current line & col
-	for bytePos, char := range this.input {
+	next, peek, stop := iter.Peek2(strIter(this.input))
+	defer stop()
+
+	for {
+		bytePos, char, valid := next()
+		if !valid {
+			break
+		}
+
+		newSimple := func(kind TokenKind, literal string) {
+			tokens = append(tokens, SimpleToken{kind: kind, literal: literal, byte: uint(bytePos), line: line, col: col})
+		}
+
+		col += 1
+
 		switch {
 		case char == '(':
-			tokens = append(tokens, SimpleToken{
-				kind:    LPAREN,
-				literal: "(",
-				byte:    uint(bytePos),
-			})
-
+			newSimple(LPAREN, "(")
 		case char == ')':
-			tokens = append(tokens, SimpleToken{
-				kind:    LPAREN,
-				literal: ")",
-				byte:    uint(bytePos),
-			})
+			newSimple(RPAREN, ")")
+		case char == '[':
+			newSimple(LSQUARE, "[")
+		case char == ']':
+			newSimple(RSQUARE, "]")
+		case char == '\r':
+			_, peekChar, peekValid := peek()
+			if !peekValid {
+				goto LOOPEND
+			}
 
+			if peekChar == '\n' {
+				next()
+			}
+
+			line += 1
+			col = 0
 		case char == '\n':
-			// TODO:
+			line += 1
+			col = 0
 
 		default:
 			return tokens, fmt.Errorf("Unexpected character: '%c'", char)
 		}
 	}
+LOOPEND:
 
 	return tokens, nil
 }
