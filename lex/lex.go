@@ -91,18 +91,21 @@ func strIter(input string) stditer.Seq2[int, rune] {
 func (this *Lexer) Process() ([]Token, error) {
 	tokens := []Token{}
 	var line, col uint = 1, 0
+	var bytePos int
+	var char rune
+	var valid bool
+
+	newSimple := func(kind TokenKind, literal string) {
+		tokens = append(tokens, SimpleToken{kind: kind, literal: literal, byte: uint(bytePos), line: line, col: col})
+	}
 
 	next, peek, stop := iter.Peek2(strIter(this.input))
 	defer stop()
 
 	for {
-		bytePos, char, valid := next()
+		bytePos, char, valid = next()
 		if !valid {
 			break
-		}
-
-		newSimple := func(kind TokenKind, literal string) {
-			tokens = append(tokens, SimpleToken{kind: kind, literal: literal, byte: uint(bytePos), line: line, col: col})
 		}
 
 		col += 1
