@@ -11,8 +11,7 @@ type TokenKind int
 type TokenSubkind int
 
 type Lexer struct {
-	input  string
-	cursor uint
+	input string
 }
 
 type Token interface {
@@ -51,16 +50,17 @@ const (
 	RSQUARE
 	LCURLY
 	RCURLY
+	PLUS
+	MINUS
+	ASTERISK
+	SLASH
+	// TODO:
 	IDENT
 	KEYWORD
 	INT
 	FLOAT
 	STRING
 	BOOL
-	PLUS
-	MINUS
-	ASTERISK
-	SLASH
 )
 
 // keywords
@@ -73,8 +73,7 @@ const (
 
 func NewLexer(input string) Lexer {
 	return Lexer{
-		input:  input,
-		cursor: 0,
+		input: input,
 	}
 }
 
@@ -119,6 +118,18 @@ func (this *Lexer) Process() ([]Token, error) {
 			newSimple(LSQUARE, "[")
 		case char == ']':
 			newSimple(RSQUARE, "]")
+		case char == '{':
+			newSimple(LCURLY, "{")
+		case char == '}':
+			newSimple(RCURLY, "}")
+		case char == '+':
+			newSimple(PLUS, "+")
+		case char == '-':
+			newSimple(MINUS, "-")
+		case char == '*':
+			newSimple(ASTERISK, "*")
+		case char == '/':
+			newSimple(SLASH, "/")
 		case char == '\r':
 			_, peekChar, peekValid := peek()
 			if !peekValid {
