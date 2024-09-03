@@ -1,0 +1,65 @@
+package lex
+
+type TokenKind int
+type TokenSubkind int
+
+// type Token interface {
+// 	Byte() uint
+// 	Line() uint
+// 	Col() uint
+// 	Kind() TokenKind
+// 	Subkind() TokenSubkind
+// 	Literal() string
+// 	Value() interface{}
+// }
+
+type Token struct {
+	byte    uint
+	line    uint
+	col     uint
+	kind    TokenKind
+	subkind TokenSubkind
+	literal string
+	value   interface{}
+}
+
+func (this Token) Byte() uint            { return this.byte }
+func (this Token) Line() uint            { return this.line }
+func (this Token) Col() uint             { return this.col }
+func (this Token) Kind() TokenKind       { return this.kind }
+func (this Token) Subkind() TokenSubkind { return this.subkind }
+func (this Token) Literal() string       { return this.literal }
+func (this Token) Value() interface{}    { return this.value }
+
+const NILKIND = 0
+
+// tokens
+const (
+	LPAREN = iota + 1
+	RPAREN
+	LSQUARE
+	RSQUARE
+	LCURLY
+	RCURLY
+	PLUS
+	MINUS
+	ASTERISK
+	SLASH
+	// TODO:
+	IDENT
+	KEYWORD
+	INT
+	FLOAT
+	STRING
+	BOOL
+)
+
+// keywords
+const (
+	STRUCT = iota + 1
+	IF
+	ELSE
+	EXPORT
+)
+
+var allKeywords = map[string]TokenSubkind{"struct": STRUCT, "if": IF, "else": ELSE, "export": EXPORT}

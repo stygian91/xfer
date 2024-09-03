@@ -2,74 +2,14 @@ package lex
 
 import (
 	"fmt"
-	stditer "iter"
+	"unicode"
 
 	"github.com/stygian91/iter-go"
 )
 
-type TokenKind int
-type TokenSubkind int
-
 type Lexer struct {
 	input string
 }
-
-type Token interface {
-	Byte() uint
-	Line() uint
-	Col() uint
-	Kind() TokenKind
-	Subkind() TokenSubkind
-	Literal() string
-	Value() interface{}
-}
-
-type SimpleToken struct {
-	byte    uint
-	line    uint
-	col     uint
-	kind    TokenKind
-	literal string
-}
-
-func (this SimpleToken) Byte() uint            { return this.byte }
-func (this SimpleToken) Line() uint            { return this.line }
-func (this SimpleToken) Col() uint             { return this.col }
-func (this SimpleToken) Kind() TokenKind       { return this.kind }
-func (this SimpleToken) Subkind() TokenSubkind { return NILKIND }
-func (this SimpleToken) Literal() string       { return this.literal }
-func (this SimpleToken) Value() interface{}    { return nil }
-
-const NILKIND = 0
-
-// tokens
-const (
-	LPAREN = iota + 1
-	RPAREN
-	LSQUARE
-	RSQUARE
-	LCURLY
-	RCURLY
-	PLUS
-	MINUS
-	ASTERISK
-	SLASH
-	// TODO:
-	IDENT
-	KEYWORD
-	INT
-	FLOAT
-	STRING
-	BOOL
-)
-
-// keywords
-const (
-	STRUCT = iota + 1
-	IF
-	ELSE
-	EXPORT
-)
 
 func NewLexer(input string) Lexer {
 	return Lexer{
@@ -77,25 +17,30 @@ func NewLexer(input string) Lexer {
 	}
 }
 
-func strIter(input string) stditer.Seq2[int, rune] {
-	return func(yield func(int, rune) bool) {
-		for i, char := range input {
-			if !yield(i, char) {
-				return
-			}
-		}
-	}
-}
-
 func (this *Lexer) Process() ([]Token, error) {
 	tokens := []Token{}
-	var line, col uint = 1, 0
-	var bytePos int
+	var line, col, identLine, identCol uint = 1, 0, 0, 0
+	var bytePos, identPos int
 	var char rune
 	var valid bool
+	currIdent := ""
+
+	finishIdent := func() {
+		subkind, exists := allKeywords[currIdent]
+		if exists {
+			tokens = append(tokens, Token{kind: KEYWORD, subkind: subkind, literal: currIdent, byte: uint(identPos), line: identLine, col: identCol})
+		} else {
+			tokens = append(tokens, Token{kind: IDENT, subkind: NILKIND, literal: currIdent, byte: uint(identPos), line: identLine, col: identCol})
+		}
+		currIdent = ""
+	}
 
 	newSimple := func(kind TokenKind, literal string) {
-		tokens = append(tokens, SimpleToken{kind: kind, literal: literal, byte: uint(bytePos), line: line, col: col})
+		if len(currIdent) > 0 {
+			finishIdent()
+		}
+
+		tokens = append(tokens, Token{kind: kind, subkind: NILKIND, literal: literal, byte: uint(bytePos), line: line, col: col})
 	}
 
 	next, peek, stop := iter.Peek2(strIter(this.input))
@@ -109,7 +54,19 @@ func (this *Lexer) Process() ([]Token, error) {
 
 		col += 1
 
+		if unicode.IsSpace(char) && len(currIdent) > 0 {
+			finishIdent()
+		}
+
 		switch {
+		case isValidIdentRune(char):
+			if len(currIdent) == 0 {
+				identPos = bytePos
+				identLine = line
+				identCol = col
+			}
+			currIdent += string(char)
+
 		case char == '(':
 			newSimple(LPAREN, "(")
 		case char == ')':
@@ -145,6 +102,8 @@ func (this *Lexer) Process() ([]Token, error) {
 		case char == '\n':
 			line += 1
 			col = 0
+
+		case unicode.IsSpace(char):
 
 		default:
 			return tokens, fmt.Errorf("Unexpected character: '%c'", char)
