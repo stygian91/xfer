@@ -3,16 +3,6 @@ package lex
 type TokenKind int
 type TokenSubkind int
 
-// type Token interface {
-// 	Byte() uint
-// 	Line() uint
-// 	Col() uint
-// 	Kind() TokenKind
-// 	Subkind() TokenSubkind
-// 	Literal() string
-// 	Value() interface{}
-// }
-
 type Token struct {
 	byte    uint
 	line    uint
@@ -45,13 +35,13 @@ const (
 	MINUS
 	ASTERISK
 	SLASH
-	// TODO:
+	DOT
 	IDENT
 	KEYWORD
 	INT
 	FLOAT
+	// TODO:
 	STRING
-	BOOL
 )
 
 // keywords
@@ -60,6 +50,8 @@ const (
 	IF
 	ELSE
 	EXPORT
+	TRUE
+	FALSE
 )
 
-var allKeywords = map[string]TokenSubkind{"struct": STRUCT, "if": IF, "else": ELSE, "export": EXPORT}
+var reservedWords = map[string]TokenSubkind{"struct": STRUCT, "if": IF, "else": ELSE, "export": EXPORT, "true": TRUE, "false": FALSE}
