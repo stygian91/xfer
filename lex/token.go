@@ -47,6 +47,7 @@ const (
 // keywords
 const (
 	STRUCT = iota + 1
+	ENUM
 	IF
 	ELSE
 	EXPORT
@@ -54,4 +55,4 @@ const (
 	FALSE
 )
 
-var reservedWords = map[string]TokenSubkind{"struct": STRUCT, "if": IF, "else": ELSE, "export": EXPORT, "true": TRUE, "false": FALSE}
+var reservedWords = map[string]TokenSubkind{"struct": STRUCT, "enum": ENUM, "if": IF, "else": ELSE, "export": EXPORT, "true": TRUE, "false": FALSE}
