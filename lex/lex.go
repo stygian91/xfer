@@ -2,6 +2,7 @@ package lex
 
 import (
 	"fmt"
+	stditer "iter"
 	"strconv"
 	"strings"
 	"unicode"
@@ -10,171 +11,214 @@ import (
 )
 
 type Lexer struct {
-	input string
+	next func() (int, rune, bool)
+	peek func() (int, rune, bool)
+	stop func()
+
+	tokens []Token
+	err    error
+
+	char    rune
+	bytePos int
+	valid   bool
+
+	line uint
+	col  uint
+
+	currIdent string
+	identLine uint
+	identCol  uint
+	identPos  int
+
+	currNumber      string
+	numberLine      uint
+	numberCol       uint
+	numberPos       int
+	currNumberIsInt bool
 }
 
-func NewLexer(input string) Lexer {
+func NewLexer(seq stditer.Seq2[int, rune]) Lexer {
+	next, peek, stop := iter.Peek2(seq)
+	tokens := []Token{}
+
 	return Lexer{
-		input: input,
+		next:            next,
+		peek:            peek,
+		stop:            stop,
+		tokens:          tokens,
+		line:            1,
+		currNumberIsInt: true,
 	}
 }
 
 func (this *Lexer) Process() ([]Token, error) {
-	tokens := []Token{}
-
-	var err error
-
-	var line, col uint = 1, 0
-	var char rune
-	var valid bool
-	var bytePos int
-
-	var identLine, identCol uint
-	var identPos int
-	currIdent := ""
-
-	var numberLine, numberCol uint
-	var numberPos int
-	currNumber := ""
-	currNumberIsInt := true
-
-	finishIdent := func() {
-		subkind, exists := reservedWords[currIdent]
-		if exists {
-			tokens = append(tokens, Token{kind: KEYWORD, subkind: subkind, literal: currIdent, byte: uint(identPos), line: identLine, col: identCol})
-		} else {
-			tokens = append(tokens, Token{kind: IDENT, subkind: NILKIND, literal: currIdent, byte: uint(identPos), line: identLine, col: identCol})
-		}
-		currIdent = ""
-	}
-
-	finishNumber := func() {
-		var kind TokenKind
-		var value interface{}
-		if currNumberIsInt {
-			kind = INT
-			value, err = strconv.ParseInt(currNumber, 10, 64)
-		} else {
-			kind = FLOAT
-			value, err = strconv.ParseFloat(currNumber, 64)
-		}
-
-		if err != nil {
-			return
-		}
-
-		tokens = append(tokens, Token{kind: kind, subkind: NILKIND, literal: currNumber, byte: uint(numberPos), line: numberLine, col: numberCol, value: value})
-
-		currNumber = ""
-		currNumberIsInt = true
-	}
-
-	newSimple := func(kind TokenKind, literal string) {
-		if len(currIdent) > 0 {
-			finishIdent()
-		}
-
-		if len(currNumber) > 0 {
-			finishNumber()
-		}
-
-		tokens = append(tokens, Token{kind: kind, subkind: NILKIND, literal: literal, byte: uint(bytePos), line: line, col: col})
-	}
-
-	next, peek, stop := iter.Peek2(strIter(this.input))
-	defer stop()
+	defer this.stop()
 
 	for {
-		if err != nil {
-			return tokens, err
+		if this.err != nil {
+			return this.tokens, this.err
 		}
 
-		bytePos, char, valid = next()
-		if !valid {
+		this.bytePos, this.char, this.valid = this.next()
+		if !this.valid {
 			break
 		}
 
-		col += 1
+		this.col += 1
 
-		if unicode.IsSpace(char) {
-			if len(currIdent) > 0 {
-				finishIdent()
+		if unicode.IsSpace(this.char) {
+			if len(this.currIdent) > 0 {
+				this.finishIdent()
 			}
 
-			if len(currNumber) > 0 {
-				finishNumber()
+			if len(this.currNumber) > 0 {
+				this.finishNumber()
 			}
 		}
 
 		switch {
-		case isValidFirstIdentRune(char) && len(currIdent) == 0:
-			identPos = bytePos
-			identLine = line
-			identCol = col
-			currIdent += string(char)
-		case isValidIdentRune(char) && len(currIdent) > 0:
-			currIdent += string(char)
+		case isValidFirstIdentRune(this.char) && len(this.currIdent) == 0:
+			this.identPos = this.bytePos
+			this.identLine = this.line
+			this.identCol = this.col
+			this.currIdent += string(this.char)
+		case isValidIdentRune(this.char) && len(this.currIdent) > 0:
+			this.currIdent += string(this.char)
 
-		case unicode.IsDigit(char):
-			if len(currNumber) == 0 {
-				numberPos = bytePos
-				numberLine = line
-				numberCol = col
-				currNumberIsInt = true
+		case unicode.IsDigit(this.char):
+			if len(this.currNumber) == 0 {
+				this.numberPos = this.bytePos
+				this.numberLine = this.line
+				this.numberCol = this.col
+				this.currNumberIsInt = true
 			}
-			currNumber += string(char)
+			this.currNumber += string(this.char)
 
-		case char == '.':
-			if len(currNumber) > 0 && !strings.Contains(currNumber, ".") {
-				currNumberIsInt = false
-				currNumber += string(char)
+		case this.char == '.':
+			if len(this.currNumber) > 0 && !strings.Contains(this.currNumber, ".") {
+				this.currNumberIsInt = false
+				this.currNumber += string(this.char)
 			} else {
-				newSimple(DOT, ".")
+				this.addSimple(DOT, ".")
 			}
 
-		case char == '(':
-			newSimple(LPAREN, "(")
-		case char == ')':
-			newSimple(RPAREN, ")")
-		case char == '[':
-			newSimple(LSQUARE, "[")
-		case char == ']':
-			newSimple(RSQUARE, "]")
-		case char == '{':
-			newSimple(LCURLY, "{")
-		case char == '}':
-			newSimple(RCURLY, "}")
-		case char == '+':
-			newSimple(PLUS, "+")
-		case char == '-':
-			newSimple(MINUS, "-")
-		case char == '*':
-			newSimple(ASTERISK, "*")
-		case char == '/':
-			newSimple(SLASH, "/")
-		case char == '\r':
-			_, peekChar, peekValid := peek()
+		case this.char == '(':
+			this.addSimple(LPAREN, "(")
+		case this.char == ')':
+			this.addSimple(RPAREN, ")")
+		case this.char == '[':
+			this.addSimple(LSQUARE, "[")
+		case this.char == ']':
+			this.addSimple(RSQUARE, "]")
+		case this.char == '{':
+			this.addSimple(LCURLY, "{")
+		case this.char == '}':
+			this.addSimple(RCURLY, "}")
+		case this.char == '+':
+			this.addSimple(PLUS, "+")
+		case this.char == '-':
+			this.addSimple(MINUS, "-")
+		case this.char == '*':
+			this.addSimple(ASTERISK, "*")
+		case this.char == '/':
+			this.addSimple(SLASH, "/")
+		case this.char == '\r':
+			_, peekChar, peekValid := this.peek()
 			if !peekValid {
 				goto LOOPEND
 			}
 
 			if peekChar == '\n' {
-				next()
+				this.next()
 			}
 
-			line += 1
-			col = 0
-		case char == '\n':
-			line += 1
-			col = 0
+			this.line += 1
+			this.col = 0
+		case this.char == '\n':
+			this.line += 1
+			this.col = 0
 
-		case unicode.IsSpace(char):
+		case unicode.IsSpace(this.char):
 
 		default:
-			return tokens, fmt.Errorf("Unexpected character: '%c'", char)
+			return this.tokens, fmt.Errorf("Unexpected character: '%c'", this.char)
 		}
 	}
 LOOPEND:
 
-	return tokens, nil
+	return this.tokens, nil
+}
+
+func (this *Lexer) addSimple(kind TokenKind, literal string) {
+	if len(this.currIdent) > 0 {
+		this.finishIdent()
+	}
+
+	if len(this.currNumber) > 0 {
+		this.finishNumber()
+	}
+
+	this.append(Token{
+		kind:    kind,
+		subkind: NILKIND,
+		literal: literal,
+		byte:    uint(this.bytePos),
+		line:    this.line,
+		col:     this.col,
+	})
+}
+
+func (this *Lexer) append(token Token) {
+	this.tokens = append(this.tokens, token)
+}
+
+func (this *Lexer) finishIdent() {
+	var kind TokenKind
+	subkind, exists := reservedWords[this.currIdent]
+
+	if exists {
+		kind = KEYWORD
+	} else {
+		kind = IDENT
+	}
+
+	this.append(Token{
+		kind:    kind,
+		subkind: subkind,
+		literal: this.currIdent,
+		byte:    uint(this.identPos),
+		line:    this.identLine,
+		col:     this.identCol,
+	})
+
+	this.currIdent = ""
+}
+
+func (this *Lexer) finishNumber() {
+	var kind TokenKind
+	var value interface{}
+	if this.currNumberIsInt {
+		kind = INT
+		value, this.err = strconv.ParseInt(this.currNumber, 10, 64)
+	} else {
+		kind = FLOAT
+		value, this.err = strconv.ParseFloat(this.currNumber, 64)
+	}
+
+	if this.err != nil {
+		return
+	}
+
+	this.append(Token{
+		kind:    kind,
+		subkind: NILKIND,
+		literal: this.currNumber,
+		byte:    uint(this.numberPos),
+		line:    this.numberLine,
+		col:     this.numberCol,
+		value:   value,
+	})
+
+	this.currNumber = ""
+	this.currNumberIsInt = true
 }
