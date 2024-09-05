@@ -250,7 +250,32 @@ func (this *Lexer) handleString() {
 			return
 		}
 
-		// TODO:
-		slices.Contains(strEscapable, peekV)
+		if !slices.Contains(strEscapable, peekV) {
+			this.err = fmt.Errorf("Unknown escape sequence")
+			return
+		}
+
+		this.strEscNext = true
+		this.currStr += string(this.char)
+	case this.char == '"':
+		value := unescape(this.currStr[1:])
+		this.currStr += string(this.char)
+		this.append(Token{
+			byte:    uint(this.strPos),
+			line:    this.strLine,
+			col:     this.strCol,
+			kind:    STRING,
+			subkind: NILKIND,
+			literal: this.currStr,
+			value:   value,
+		})
+		this.currStr = ""
+
+	case this.char == '\r' || this.char == '\n':
+		this.err = fmt.Errorf("\\r and \\n are not allowed in strings, consider escaping them")
+		return
+
+	default:
+		this.currStr += string(this.char)
 	}
 }

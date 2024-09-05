@@ -4,22 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	stditer "iter"
 	"log"
 	"os"
 
 	"github.com/stygian91/xfer/lex"
 )
-
-func strIter(input string) stditer.Seq2[int, rune] {
-	return func(yield func(int, rune) bool) {
-		for i, char := range input {
-			if !yield(i, char) {
-				return
-			}
-		}
-	}
-}
 
 func main() {
 	l := log.New(os.Stderr, "", 0)
@@ -43,7 +32,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	lexer := lex.NewLexer(strIter(string(input)))
+	lexer := lex.NewLexer(lex.StrIter2(string(input)))
 	tokens, err := lexer.Process()
 	if err != nil {
 		l.Printf("Error lexing: %s", err)

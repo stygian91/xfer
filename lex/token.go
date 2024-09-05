@@ -40,7 +40,6 @@ const (
 	KEYWORD
 	INT
 	FLOAT
-	// TODO:
 	STRING
 )
 
@@ -57,4 +56,4 @@ const (
 
 var reservedWords = map[string]TokenSubkind{"struct": STRUCT, "enum": ENUM, "if": IF, "else": ELSE, "export": EXPORT, "true": TRUE, "false": FALSE}
 
-var strEscapable = []rune{'"', '\\', '\r', '\n', '\t'}
+var strEscapable = []rune{'"', '\\', 'r', 'n'}
