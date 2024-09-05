@@ -3,6 +3,7 @@ package lex
 import (
 	"fmt"
 	stditer "iter"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -35,6 +36,12 @@ type Lexer struct {
 	numberCol       uint
 	numberPos       int
 	currNumberIsInt bool
+
+	currStr    string
+	strPos     int
+	strLine    uint
+	strCol     uint
+	strEscNext bool
 }
 
 func NewLexer(seq stditer.Seq2[int, rune]) Lexer {
@@ -77,6 +84,14 @@ func (this *Lexer) Process() ([]Token, error) {
 		}
 
 		switch {
+		case len(this.currStr) == 0 && this.char == '"':
+			this.currStr = "\""
+			this.strLine = this.line
+			this.strCol = this.col
+			this.strPos = this.bytePos
+		case len(this.currStr) > 0:
+			this.handleString()
+
 		case isValidFirstIdentRune(this.char) && len(this.currIdent) == 0:
 			this.identPos = this.bytePos
 			this.identLine = this.line
@@ -221,4 +236,21 @@ func (this *Lexer) finishNumber() {
 
 	this.currNumber = ""
 	this.currNumberIsInt = true
+}
+
+func (this *Lexer) handleString() {
+	switch {
+	case this.strEscNext:
+		this.currStr += string(this.char)
+		this.strEscNext = false
+	case this.char == '\\':
+		_, peekV, peekValid := this.peek()
+		if !peekValid {
+			this.err = fmt.Errorf("Error while parsing string, unexpected EOF")
+			return
+		}
+
+		// TODO:
+		slices.Contains(strEscapable, peekV)
+	}
 }
