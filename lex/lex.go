@@ -117,6 +117,16 @@ func (this *Lexer) Process() ([]Token, error) {
 				this.addSimple(DOT, ".")
 			}
 
+		case this.char == ',':
+			this.addSimple(COMMA, ",")
+		case this.char == '=':
+			this.addSimple(EQUAL, "=")
+		case this.char == '<':
+			this.addSimple(LT, "<")
+		case this.char == '>':
+			this.addSimple(GT, ">")
+		case this.char == '!':
+			this.addSimple(BANG, "!")
 		case this.char == '(':
 			this.addSimple(LPAREN, "(")
 		case this.char == ')':
