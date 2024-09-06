@@ -4,22 +4,14 @@ type TokenKind int
 type TokenSubkind int
 
 type Token struct {
-	byte    uint
-	line    uint
-	col     uint
-	kind    TokenKind
-	subkind TokenSubkind
-	literal string
-	value   interface{}
+	Byte    uint
+	Line    uint
+	Col     uint
+	Kind    TokenKind
+	Subkind TokenSubkind
+	Literal string
+	Value   interface{}
 }
-
-func (this Token) Byte() uint            { return this.byte }
-func (this Token) Line() uint            { return this.line }
-func (this Token) Col() uint             { return this.col }
-func (this Token) Kind() TokenKind       { return this.kind }
-func (this Token) Subkind() TokenSubkind { return this.subkind }
-func (this Token) Literal() string       { return this.literal }
-func (this Token) Value() interface{}    { return this.value }
 
 const NILKIND = 0
 

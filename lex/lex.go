@@ -184,12 +184,12 @@ func (this *Lexer) addSimple(kind TokenKind, literal string) {
 	}
 
 	this.append(Token{
-		kind:    kind,
-		subkind: NILKIND,
-		literal: literal,
-		byte:    uint(this.bytePos),
-		line:    this.line,
-		col:     this.col,
+		Kind:    kind,
+		Subkind: NILKIND,
+		Literal: literal,
+		Byte:    uint(this.bytePos),
+		Line:    this.line,
+		Col:     this.col,
 	})
 }
 
@@ -208,12 +208,12 @@ func (this *Lexer) finishIdent() {
 	}
 
 	this.append(Token{
-		kind:    kind,
-		subkind: subkind,
-		literal: this.currIdent,
-		byte:    uint(this.identPos),
-		line:    this.identLine,
-		col:     this.identCol,
+		Kind:    kind,
+		Subkind: subkind,
+		Literal: this.currIdent,
+		Byte:    uint(this.identPos),
+		Line:    this.identLine,
+		Col:     this.identCol,
 	})
 
 	this.currIdent = ""
@@ -235,13 +235,13 @@ func (this *Lexer) finishNumber() {
 	}
 
 	this.append(Token{
-		kind:    kind,
-		subkind: NILKIND,
-		literal: this.currNumber,
-		byte:    uint(this.numberPos),
-		line:    this.numberLine,
-		col:     this.numberCol,
-		value:   value,
+		Kind:    kind,
+		Subkind: NILKIND,
+		Literal: this.currNumber,
+		Byte:    uint(this.numberPos),
+		Line:    this.numberLine,
+		Col:     this.numberCol,
+		Value:   value,
 	})
 
 	this.currNumber = ""
@@ -271,13 +271,13 @@ func (this *Lexer) handleString() {
 		value := unescape(this.currStr[1:])
 		this.currStr += string(this.char)
 		this.append(Token{
-			byte:    uint(this.strPos),
-			line:    this.strLine,
-			col:     this.strCol,
-			kind:    STRING,
-			subkind: NILKIND,
-			literal: this.currStr,
-			value:   value,
+			Byte:    uint(this.strPos),
+			Line:    this.strLine,
+			Col:     this.strCol,
+			Kind:    STRING,
+			Subkind: NILKIND,
+			Literal: this.currStr,
+			Value:   value,
 		})
 		this.currStr = ""
 
