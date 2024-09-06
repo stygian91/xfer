@@ -70,6 +70,9 @@ func (this *Lexer) Process() ([]Token, error) {
 		if !this.valid {
 			this.finishIdent()
 			this.finishNumber()
+			if len(this.currStr) > 0 {
+				return this.tokens, fmt.Errorf("Unexpected EOF while lexing string.")
+			}
 			break
 		}
 
