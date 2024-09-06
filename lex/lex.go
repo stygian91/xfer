@@ -68,11 +68,11 @@ func (this *Lexer) Process() ([]Token, error) {
 
 		this.bytePos, this.char, this.valid = this.next()
 		if !this.valid {
-			this.finishIdent()
-			this.finishNumber()
-			if len(this.currStr) > 0 {
-				return this.tokens, fmt.Errorf("Unexpected EOF while lexing string.")
+			endErr := this.ending()
+			if endErr != nil {
+				return this.tokens, endErr
 			}
+
 			break
 		}
 
@@ -301,4 +301,14 @@ func (this *Lexer) handleString() {
 	default:
 		this.currStr += string(this.char)
 	}
+}
+
+func (this *Lexer) ending() error {
+	this.finishIdent()
+	this.finishNumber()
+	if len(this.currStr) > 0 {
+		return fmt.Errorf("Unexpected EOF")
+	}
+
+	return nil
 }
