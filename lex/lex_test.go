@@ -57,6 +57,32 @@ func TestNumbers(t *testing.T) {
 	}
 
 	if diff := cmp.Diff(expected, tokens); diff != "" {
-		t.Errorf("TestSimples() mismatch (-want +got):\n%s", diff)
+		t.Errorf("TestNumbers() mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestIdents(t *testing.T) {
+	it := l.StrIter2("asd if else export true false struct enum")
+	lex := l.NewLexer(it)
+	tokens, err := lex.Process()
+
+	if err != nil {
+		t.Errorf("Error while testing simples: %s", err)
+		return
+	}
+
+	expected := []l.Token{
+		{Kind: l.IDENT, Literal: "asd", Line: 1, Col: 1, Byte: 0},
+		{Kind: l.KEYWORD, Subkind: l.IF, Literal: "if", Line: 1, Col: 5, Byte: 4},
+		{Kind: l.KEYWORD, Subkind: l.ELSE, Literal: "else", Line: 1, Col: 8, Byte: 7},
+		{Kind: l.KEYWORD, Subkind: l.EXPORT, Literal: "export", Line: 1, Col: 13, Byte: 12},
+		{Kind: l.KEYWORD, Subkind: l.TRUE, Literal: "true", Line: 1, Col: 20, Byte: 19},
+		{Kind: l.KEYWORD, Subkind: l.FALSE, Literal: "false", Line: 1, Col: 25, Byte: 24},
+		{Kind: l.KEYWORD, Subkind: l.STRUCT, Literal: "struct", Line: 1, Col: 31, Byte: 30},
+		{Kind: l.KEYWORD, Subkind: l.ENUM, Literal: "enum", Line: 1, Col: 38, Byte: 37},
+	}
+
+	if diff := cmp.Diff(expected, tokens); diff != "" {
+		t.Errorf("TestIdents() mismatch (-want +got):\n%s", diff)
 	}
 }
