@@ -68,6 +68,8 @@ func (this *Lexer) Process() ([]Token, error) {
 
 		this.bytePos, this.char, this.valid = this.next()
 		if !this.valid {
+			this.finishIdent()
+			this.finishNumber()
 			break
 		}
 
@@ -198,6 +200,10 @@ func (this *Lexer) append(token Token) {
 }
 
 func (this *Lexer) finishIdent() {
+	if len(this.currIdent) == 0 {
+		return
+	}
+
 	var kind TokenKind
 	subkind, exists := reservedWords[this.currIdent]
 
@@ -220,6 +226,10 @@ func (this *Lexer) finishIdent() {
 }
 
 func (this *Lexer) finishNumber() {
+	if len(this.currNumber) == 0 {
+		return
+	}
+
 	var kind TokenKind
 	var value interface{}
 	if this.currNumberIsInt {

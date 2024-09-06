@@ -40,3 +40,23 @@ func TestSimples(t *testing.T) {
 		t.Errorf("TestSimples() mismatch (-want +got):\n%s", diff)
 	}
 }
+
+func TestNumbers(t *testing.T) {
+	it := l.StrIter2("123 42.69")
+	lex := l.NewLexer(it)
+	tokens, err := lex.Process()
+
+	if err != nil {
+		t.Errorf("Error while testing simples: %s", err)
+		return
+	}
+
+	expected := []l.Token{
+		{Kind: l.INT, Literal: "123", Value: int64(123), Line: 1, Col: 1, Byte: 0},
+		{Kind: l.FLOAT, Literal: "42.69", Value: 42.69, Line: 1, Col: 5, Byte: 4},
+	}
+
+	if diff := cmp.Diff(expected, tokens); diff != "" {
+		t.Errorf("TestSimples() mismatch (-want +got):\n%s", diff)
+	}
+}
