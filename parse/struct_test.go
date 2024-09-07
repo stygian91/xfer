@@ -3,12 +3,18 @@ package parse_test
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stygian91/xfer/lex"
-	"github.com/stygian91/xfer/parse"
+	p "github.com/stygian91/xfer/parse"
 )
 
 func TestStructParse(t *testing.T) {
-	input := "struct foo {\n\n}"
+	input := `struct foo {
+		x int
+		y float
+		z mytype
+	}`
+
 	l := lex.NewLexer(lex.StrIter2(input))
 	tokens, err := l.Process()
 	if err != nil {
@@ -16,24 +22,34 @@ func TestStructParse(t *testing.T) {
 		return
 	}
 
-	p := parse.NewParser(tokens)
-	sNode, err := parse.Struct(&p)
+	parser := p.NewParser(tokens)
+	actual, err := p.Struct(&parser)
 	if err != nil {
 		t.Errorf("TestStructParse() parse.Struct() error: %s", err)
 		return
 	}
 
-	nValue, ok := sNode.Value.(parse.StructValue)
-	if !ok {
-		t.Errorf("TestStructParse() node value is not StructValue")
-		return
+	expected := p.Node{
+		Kind:  p.STRUCT,
+		Value: p.StructValue{Export: false},
+		Children: []p.Node{
+			{Kind: p.IDENT, Value: p.IdentValue{Name: "foo"}},
+			{Kind: p.FIELD, Children: []p.Node{
+				{Kind: p.IDENT, Value: p.IdentValue{Name: "x"}},
+				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "int"}},
+			}},
+			{Kind: p.FIELD, Children: []p.Node{
+				{Kind: p.IDENT, Value: p.IdentValue{Name: "y"}},
+				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "float"}},
+			}},
+			{Kind: p.FIELD, Children: []p.Node{
+				{Kind: p.IDENT, Value: p.IdentValue{Name: "z"}},
+				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "mytype"}},
+			}},
+		},
 	}
 
-	if nValue.Export {
-		t.Errorf("TestStructParse() expected StructValue.Expect to be false, got true")
-	}
-
-	if nValue.Ident != "foo" {
-		t.Errorf("TestStructParse() expected StructValue.Ident to be 'foo', got %s", nValue.Ident)
+	if diff := cmp.Diff(expected, actual); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }

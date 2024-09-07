@@ -69,6 +69,14 @@ func KindString(kind TokenKind) string {
 		return "FLOAT"
 	case STRING:
 		return "STRING"
+	case BOOLTYPE:
+		return "BOOLTYPE"
+	case STRINGTYPE:
+		return "STRINGTYPE"
+	case INTTYPE:
+		return "INTTYPE"
+	case FLOATTYPE:
+		return "FLOATTYPE"
 	default:
 		return "NILKIND"
 	}
@@ -118,8 +126,24 @@ const (
 	INT
 	FLOAT
 	STRING
+	BOOLTYPE
+	STRINGTYPE
+	INTTYPE
+	FLOATTYPE
 )
 
-var reservedWords = map[string]TokenKind{"struct": STRUCT, "enum": ENUM, "if": IF, "else": ELSE, "export": EXPORT, "true": TRUE, "false": FALSE}
+var reservedWords = map[string]TokenKind{
+	"struct": STRUCT,
+	"enum":   ENUM,
+	"if":     IF,
+	"else":   ELSE,
+	"export": EXPORT,
+	"true":   TRUE,
+	"false":  FALSE,
+	"bool":   BOOLTYPE,
+	"string": STRINGTYPE,
+	"int":    INTTYPE,
+	"float":  FLOATTYPE,
+}
 
 var strEscapable = []rune{'"', '\\', 'r', 'n'}

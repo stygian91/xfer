@@ -8,7 +8,15 @@ import (
 
 type StructValue struct {
 	Export bool
-	Ident  string
+	// Ident  string
+}
+
+type IdentValue struct {
+	Name string
+}
+
+func wrapErr(err error) error {
+	return fmt.Errorf("Parse struct error: %w", err)
 }
 
 func Struct(parser *Parser) (Node, error) {
@@ -19,23 +27,43 @@ func Struct(parser *Parser) (Node, error) {
 	value.Export = hasExport
 
 	if _, err := parser.Expect(lex.STRUCT); err != nil {
-		return Node{}, err
+		return Node{}, wrapErr(err)
 	}
 
 	token, err := parser.Expect(lex.IDENT)
 	if err != nil {
-		return Node{}, err
+		return Node{}, wrapErr(err)
 	}
-	value.Ident = token.Literal
+	node.Children = append(node.Children, Node{
+		Kind:  IDENT,
+		Value: IdentValue{Name: token.Literal},
+	})
 
 	if _, err := parser.Expect(lex.LCURLY); err != nil {
-		return Node{}, err
+		return Node{}, wrapErr(err)
 	}
 
-	// TODO: struct fields
+	for {
+		token, err := parser.ExpectEither(lex.RCURLY, lex.IDENT)
+		if err != nil {
+			return Node{}, wrapErr(err)
+		}
 
-	if _, err := parser.Expect(lex.RCURLY); err != nil {
-		return Node{}, err
+		if token.Kind == lex.RCURLY {
+			break
+		}
+
+		typename, err := TypeName(parser)
+		if err != nil {
+			return Node{}, wrapErr(err)
+		}
+
+		// TODO: validation list parsing
+
+		node.Children = append(node.Children, Node{
+			Kind:     FIELD,
+			Children: []Node{{Kind: IDENT, Value: IdentValue{Name: token.Literal}}, typename},
+		})
 	}
 
 	node.Value = value

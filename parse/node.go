@@ -7,6 +7,7 @@ const (
 	STRUCT
 	FIELD
 	IDENT
+	TYPENAME
 )
 
 type Node struct {
