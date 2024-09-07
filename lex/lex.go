@@ -190,7 +190,6 @@ func (this *Lexer) addSimple(kind TokenKind, literal string) {
 
 	this.append(Token{
 		Kind:    kind,
-		Subkind: NILKIND,
 		Literal: literal,
 		Byte:    uint(this.bytePos),
 		Line:    this.line,
@@ -208,17 +207,16 @@ func (this *Lexer) finishIdent() {
 	}
 
 	var kind TokenKind
-	subkind, exists := reservedWords[this.currIdent]
+	reserved, exists := reservedWords[this.currIdent]
 
 	if exists {
-		kind = KEYWORD
+		kind = reserved
 	} else {
 		kind = IDENT
 	}
 
 	this.append(Token{
 		Kind:    kind,
-		Subkind: subkind,
 		Literal: this.currIdent,
 		Byte:    uint(this.identPos),
 		Line:    this.identLine,
@@ -249,7 +247,6 @@ func (this *Lexer) finishNumber() {
 
 	this.append(Token{
 		Kind:    kind,
-		Subkind: NILKIND,
 		Literal: this.currNumber,
 		Byte:    uint(this.numberPos),
 		Line:    this.numberLine,
@@ -288,7 +285,6 @@ func (this *Lexer) handleString() {
 			Line:    this.strLine,
 			Col:     this.strCol,
 			Kind:    STRING,
-			Subkind: NILKIND,
 			Literal: this.currStr,
 			Value:   value,
 		})
