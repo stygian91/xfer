@@ -15,6 +15,8 @@ type IdentValue struct {
 	Name string
 }
 
+var fieldLoopTokenKinds = []lex.TokenKind{lex.RCURLY, lex.IDENT}
+
 func wrapErr(err error) error {
 	return fmt.Errorf("Parse struct error: %w", err)
 }
@@ -44,7 +46,7 @@ func Struct(parser *Parser) (Node, error) {
 	}
 
 	for {
-		token, err := parser.ExpectEither(lex.RCURLY, lex.IDENT)
+		token, err := parser.ExpectAny(fieldLoopTokenKinds)
 		if err != nil {
 			return Node{}, wrapErr(err)
 		}
