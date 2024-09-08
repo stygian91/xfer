@@ -25,6 +25,7 @@ func Struct(parser *Parser) (Node, error) {
 	node := Node{Kind: STRUCT}
 	value := StructValue{}
 
+	// TODO: move this out, it does not belong to the struct specifically
 	_, hasExport := parser.Optional(lex.EXPORT)
 	value.Export = hasExport
 
