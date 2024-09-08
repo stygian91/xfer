@@ -13,21 +13,6 @@ type Parser struct {
 	idx int
 }
 
-type ExpectKind int
-
-const (
-	EXPECSEQNILKIND = iota
-	OPTIONAL
-	EXPECT
-	EXPECTANY
-)
-
-type ExpectSeqHandler interface {
-	ExpectKind() ExpectKind
-	TokenKinds() []lex.TokenKind
-	Handle(*Parser, lex.Token) (Node, error)
-}
-
 func NewParser(tokens []lex.Token) Parser {
 	return Parser{
 		tokens: tokens,
@@ -82,6 +67,28 @@ func (this *Parser) Expect(kind lex.TokenKind) (lex.Token, error) {
 	return currToken, nil
 }
 
+func (this *Parser) ExpectEither(kindA lex.TokenKind, kindB lex.TokenKind) (lex.Token, error) {
+	currToken, exists := this.CurrentToken()
+
+	if !exists {
+		return lex.Token{}, fmt.Errorf("Unexpected end of token stream, expected %s or %s", lex.KindString(kindA), lex.KindString(kindB))
+	}
+
+	if currToken.Kind != kindA && currToken.Kind != kindB {
+		return lex.Token{}, fmt.Errorf(
+			"Unexpected token %s, expected %s or %s at line %d, col %d",
+			lex.KindString(currToken.Kind),
+			lex.KindString(kindA),
+			lex.KindString(kindB),
+			currToken.Line,
+			currToken.Col,
+		)
+	}
+
+	this.idx += 1
+	return currToken, nil
+}
+
 func (this *Parser) ExpectAny(kinds []lex.TokenKind) (lex.Token, error) {
 	currToken, exists := this.CurrentToken()
 
@@ -101,58 +108,4 @@ func (this *Parser) ExpectAny(kinds []lex.TokenKind) (lex.Token, error) {
 
 	this.idx += 1
 	return currToken, nil
-}
-
-func (this *Parser) ParseSeq(handlers []ExpectSeqHandler) ([]Node, error) {
-	nodes := []Node{}
-
-	for _, handler := range handlers {
-		tokenKinds := handler.TokenKinds()
-		if len(tokenKinds) == 0 {
-			return []Node{}, fmt.Errorf("Parser.ExpectSeq(): no token kinds provided")
-		}
-
-		switch handler.ExpectKind() {
-		case OPTIONAL:
-			token, exists := this.Optional(tokenKinds[0])
-			if !exists {
-				break
-			}
-			node, err := handler.Handle(this, token)
-			if err != nil {
-				return []Node{}, fmt.Errorf("Parser.ExpectSeq(): error in Optional handler: %w", err)
-			}
-
-			nodes = append(nodes, node)
-		case EXPECT:
-			token, err := this.Expect(tokenKinds[0])
-			if err != nil {
-				return []Node{}, fmt.Errorf("Parser.ExpectSeq(): error in Expect: %w", err)
-			}
-
-			node, err := handler.Handle(this, token)
-			if err != nil {
-				return []Node{}, fmt.Errorf("Parser.ExpectSeq(): error in Expect handler: %w", err)
-			}
-
-			nodes = append(nodes, node)
-		case EXPECTANY:
-			token, err := this.ExpectAny(tokenKinds)
-			if err != nil {
-				return []Node{}, fmt.Errorf("Parser.ExpectSeq(): error in ExpectAny: %w", err)
-			}
-
-			node, err := handler.Handle(this, token)
-			if err != nil {
-				return []Node{}, fmt.Errorf("Parser.ExpectSeq(): error in ExpectAny handler: %w", err)
-			}
-
-			nodes = append(nodes, node)
-
-		default:
-			return []Node{}, fmt.Errorf("Invalid expect kind %+v", handler.ExpectKind())
-		}
-	}
-
-	return nodes, nil
 }

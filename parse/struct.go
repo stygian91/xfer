@@ -8,6 +8,7 @@ import (
 
 type StructValue struct {
 	Export bool
+	// Ident  string
 }
 
 type IdentValue struct {
@@ -17,8 +18,6 @@ type IdentValue struct {
 func wrapErr(err error) error {
 	return fmt.Errorf("Parse struct error: %w", err)
 }
-
-var expectField = []lex.TokenKind{lex.RCURLY, lex.IDENT}
 
 func Struct(parser *Parser) (Node, error) {
 	node := Node{Kind: STRUCT}
@@ -45,7 +44,7 @@ func Struct(parser *Parser) (Node, error) {
 	}
 
 	for {
-		token, err := parser.ExpectAny(expectField)
+		token, err := parser.ExpectEither(lex.RCURLY, lex.IDENT)
 		if err != nil {
 			return Node{}, wrapErr(err)
 		}
