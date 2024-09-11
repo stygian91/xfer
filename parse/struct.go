@@ -8,7 +8,6 @@ import (
 
 type StructValue struct {
 	Export bool
-	// Ident  string
 }
 
 type IdentValue struct {
@@ -24,10 +23,6 @@ func wrapErr(err error) error {
 func Struct(parser *Parser) (Node, error) {
 	node := Node{Kind: STRUCT}
 	value := StructValue{}
-
-	// TODO: move this out, it does not belong to the struct specifically
-	_, hasExport := parser.Optional(lex.EXPORT)
-	value.Export = hasExport
 
 	if _, err := parser.Expect(lex.STRUCT); err != nil {
 		return Node{}, wrapErr(err)

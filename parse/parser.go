@@ -87,3 +87,40 @@ func (this *Parser) ExpectAny(kinds []lex.TokenKind) (lex.Token, error) {
 	this.idx += 1
 	return currToken, nil
 }
+
+func (this *Parser) ExpectSeq(kinds []lex.TokenKind) ([]lex.Token, error) {
+	var err error
+	tokens := []lex.Token{}
+
+	startIdx := this.idx
+	defer (func() {
+		if err != nil {
+			this.idx = startIdx
+		}
+	})()
+
+	for _, kind := range kinds {
+		currToken, exists := this.CurrentToken()
+
+		if !exists {
+			err = fmt.Errorf("Unexpected end of token stream, expected %s", lex.KindString(kind))
+			return tokens, err
+		}
+
+		if currToken.Kind != kind {
+			err = fmt.Errorf(
+				"Unexpected token %s, expected %s at line %d, col %d",
+				lex.KindString(currToken.Kind),
+				lex.KindString(kind),
+				currToken.Line,
+				currToken.Col,
+			)
+			return tokens, err
+		}
+
+		tokens = append(tokens, currToken)
+		this.idx += 1
+	}
+
+	return tokens, err
+}
