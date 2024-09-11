@@ -11,6 +11,7 @@ type StructValue struct {
 }
 
 var fieldLoopTokenKinds = []lex.TokenKind{lex.RCURLY, lex.IDENT}
+var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT}
 
 func wrapErr(err error) error {
 	return fmt.Errorf("Parse struct error: %w", err)
@@ -20,17 +21,14 @@ func Struct(parser *Parser) (Node, error) {
 	node := Node{Kind: STRUCT}
 	value := StructValue{}
 
-	if _, err := parser.Expect(lex.STRUCT); err != nil {
-		return Node{}, wrapErr(err)
-	}
-
-	token, err := parser.Expect(lex.IDENT)
+	startTokens, err := parser.ExpectSeq(structStartKinds)
 	if err != nil {
 		return Node{}, wrapErr(err)
 	}
+
 	node.Children = append(node.Children, Node{
 		Kind:  IDENT,
-		Value: IdentValue{Name: token.Literal},
+		Value: IdentValue{Name: startTokens[1].Literal},
 	})
 
 	if _, err := parser.Expect(lex.LCURLY); err != nil {
