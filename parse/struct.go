@@ -10,10 +10,9 @@ type StructValue struct {
 	Export bool
 }
 
-var fieldLoopKinds = []lex.TokenKind{lex.RCURLY, lex.IDENT}
-var structKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT}
+var fieldLoopTokenKinds = []lex.TokenKind{lex.RCURLY, lex.IDENT}
 
-func structErr(err error) error {
+func wrapErr(err error) error {
 	return fmt.Errorf("Parse struct error: %w", err)
 }
 
@@ -21,21 +20,27 @@ func Struct(parser *Parser) (Node, error) {
 	node := Node{Kind: STRUCT}
 	value := StructValue{}
 
-	startTokens, err := parser.ExpectSeq(structKinds)
-	if err != nil {
-		return Node{}, structErr(err)
+	if _, err := parser.Expect(lex.STRUCT); err != nil {
+		return Node{}, wrapErr(err)
 	}
 
-	node.Children = append(node.Children, NewIdent(startTokens[1].Literal))
+	token, err := parser.Expect(lex.IDENT)
+	if err != nil {
+		return Node{}, wrapErr(err)
+	}
+	node.Children = append(node.Children, Node{
+		Kind:  IDENT,
+		Value: IdentValue{Name: token.Literal},
+	})
 
 	if _, err := parser.Expect(lex.LCURLY); err != nil {
-		return Node{}, structErr(err)
+		return Node{}, wrapErr(err)
 	}
 
 	for {
-		token, err := parser.ExpectAny(fieldLoopKinds)
+		token, err := parser.ExpectAny(fieldLoopTokenKinds)
 		if err != nil {
-			return Node{}, structErr(err)
+			return Node{}, wrapErr(err)
 		}
 
 		if token.Kind == lex.RCURLY {
@@ -44,14 +49,14 @@ func Struct(parser *Parser) (Node, error) {
 
 		typename, err := TypeName(parser)
 		if err != nil {
-			return Node{}, structErr(err)
+			return Node{}, wrapErr(err)
 		}
 
 		// TODO: validation list parsing
 
 		node.Children = append(node.Children, Node{
 			Kind:     FIELD,
-			Children: []Node{NewIdent(token.Literal), typename},
+			Children: []Node{{Kind: IDENT, Value: IdentValue{Name: token.Literal}}, typename},
 		})
 	}
 
