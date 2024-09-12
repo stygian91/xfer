@@ -8,6 +8,7 @@ const (
 	FIELD
 	IDENT
 	TYPENAME
+	FUNC_CALL
 )
 
 type Node struct {
