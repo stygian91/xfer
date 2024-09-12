@@ -25,6 +25,7 @@ func FuncCall(p *Parser) (Node, error) {
 			return Node{}, fmt.Errorf("Parse function call error: %w", err)
 		}
 
+		// TODO: handle commas
 		// TODO: create node based on token type
 
 		if token.Kind == lex.RPAREN {
