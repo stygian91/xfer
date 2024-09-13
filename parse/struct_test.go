@@ -10,9 +10,8 @@ import (
 
 func TestStructParse(t *testing.T) {
 	input := `struct foo {
-		x int
-		y float
-		z mytype
+		x int;
+		y float; z mytype;
 	}`
 
 	l := lex.NewLexer(lex.StrIter2(input))

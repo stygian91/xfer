@@ -39,6 +39,8 @@ func KindString(kind TokenKind) string {
 		return "DOT"
 	case COMMA:
 		return "COMMA"
+	case SEMICOLON:
+		return "SEMICOLON"
 	case EQUAL:
 		return "EQUAL"
 	case LT:
@@ -111,6 +113,7 @@ const (
 	SLASH
 	DOT
 	COMMA
+	SEMICOLON
 	EQUAL
 	LT
 	GT

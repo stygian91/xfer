@@ -124,6 +124,8 @@ func (this *Lexer) Process() ([]Token, error) {
 
 		case this.char == ',':
 			this.addSimple(COMMA, ",")
+		case this.char == ';':
+			this.addSimple(SEMICOLON, ";")
 		case this.char == '=':
 			this.addSimple(EQUAL, "=")
 		case this.char == '<':

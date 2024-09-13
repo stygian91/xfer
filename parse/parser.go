@@ -24,12 +24,32 @@ func (this Parser) HasMore() bool {
 	return this.idx < len(this.tokens)
 }
 
+// Returns the current token and a bool if it's valid.
+// Does not advance the index forward.
 func (this Parser) CurrentToken() (lex.Token, bool) {
 	if !this.HasMore() {
 		return lex.Token{}, false
 	}
 
 	return this.tokens[this.idx], true
+}
+
+// Returns one token ahead of the current one and a bool if the token is valid.
+// Does not advance the index.
+func (this Parser) PeekToken() (lex.Token, bool) {
+	if this.idx + 1 >= len(this.tokens) {
+		return lex.Token{}, false
+	}
+
+	return this.tokens[this.idx + 1], true
+}
+
+// Like CurrentToken() but it advances the index forward.
+func (this *Parser) Eat() (lex.Token, bool) {
+	token, exists := this.CurrentToken()
+	this.idx += 1
+
+	return token, exists
 }
 
 func (this *Parser) Optional(kind lex.TokenKind) (lex.Token, bool) {

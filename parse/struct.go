@@ -10,10 +10,9 @@ type StructValue struct {
 	Export bool
 }
 
-var fieldLoopTokenKinds = []lex.TokenKind{lex.RCURLY, lex.IDENT}
 var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT}
 
-func wrapErr(err error) error {
+func structErr(err error) error {
 	return fmt.Errorf("Parse struct error: %w", err)
 }
 
@@ -23,7 +22,7 @@ func Struct(parser *Parser) (Node, error) {
 
 	startTokens, err := parser.ExpectSeq(structStartKinds)
 	if err != nil {
-		return Node{}, wrapErr(err)
+		return Node{}, structErr(err)
 	}
 
 	node.Children = append(node.Children, Node{
@@ -32,25 +31,31 @@ func Struct(parser *Parser) (Node, error) {
 	})
 
 	if _, err := parser.Expect(lex.LCURLY); err != nil {
-		return Node{}, wrapErr(err)
+		return Node{}, structErr(err)
 	}
 
 	for {
-		token, err := parser.ExpectAny(fieldLoopTokenKinds)
-		if err != nil {
-			return Node{}, wrapErr(err)
+		if t, exists := parser.CurrentToken(); exists && t.Kind == lex.RCURLY {
+			parser.Eat()
+			break
 		}
 
-		if token.Kind == lex.RCURLY {
-			break
+		token, err := parser.Expect(lex.IDENT)
+		if err != nil {
+			return Node{}, structErr(err)
 		}
 
 		typename, err := TypeName(parser)
 		if err != nil {
-			return Node{}, wrapErr(err)
+			return Node{}, structErr(err)
 		}
 
 		// TODO: validation list parsing
+
+		_, err = parser.Expect(lex.SEMICOLON)
+		if err != nil {
+			return Node{}, structErr(err)
+		}
 
 		node.Children = append(node.Children, Node{
 			Kind:     FIELD,
