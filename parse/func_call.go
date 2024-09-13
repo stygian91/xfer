@@ -70,11 +70,10 @@ func FuncCall(p *Parser) (Node, error) {
 	node.Children = append(node.Children, firstArg)
 
 	for {
-		if _, exists := p.Optional(lex.RPAREN); exists {
-			break
-		}
-
 		if _, exists := p.Optional(lex.COMMA); !exists {
+			if _, err := p.Expect(lex.RPAREN); err != nil {
+				return funcCallErr(err)
+			}
 			break
 		}
 

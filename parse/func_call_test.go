@@ -48,3 +48,20 @@ func TestFuncCall(t *testing.T) {
 
 	test.CheckDiff(t, expected, actual)
 }
+
+func TestFuncCallErr(t *testing.T) {
+	input := `foo(123 45)`
+
+	l := lex.NewLexer(lex.StrIter2(input))
+	tokens, err := l.Process()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	parser := p.NewParser(tokens)
+	_, err = p.FuncCall(&parser)
+	if err == nil {
+		t.Errorf("Expected error when parsing '%s'", input)
+	}
+}
