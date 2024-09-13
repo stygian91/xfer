@@ -3,9 +3,9 @@ package parse_test
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/stygian91/xfer/lex"
 	p "github.com/stygian91/xfer/parse"
+	"github.com/stygian91/xfer/test"
 )
 
 func TestStructParse(t *testing.T) {
@@ -20,14 +20,14 @@ func TestStructParse(t *testing.T) {
 	l := lex.NewLexer(lex.StrIter2(input))
 	tokens, err := l.Process()
 	if err != nil {
-		t.Errorf("TestStructParse() lex.process error: %s", err)
+		t.Error(err)
 		return
 	}
 
 	parser := p.NewParser(tokens)
 	actual1, err := p.Struct(&parser)
 	if err != nil {
-		t.Errorf("TestStructParse() parse.Struct() error: %s", err)
+		t.Error(err)
 		return
 	}
 
@@ -51,13 +51,11 @@ func TestStructParse(t *testing.T) {
 		},
 	}
 
-	if diff := cmp.Diff(expected1, actual1); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
-	}
+	test.CheckDiff(t, expected1, actual1)
 
 	actual2, err := p.Struct(&parser)
 	if err != nil {
-		t.Errorf("TestStructParse() parse.Struct() error: %s", err)
+		t.Error(err)
 		return
 	}
 
@@ -73,7 +71,5 @@ func TestStructParse(t *testing.T) {
 		},
 	}
 
-	if diff := cmp.Diff(expected2, actual2); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
-	}
+	test.CheckDiff(t, expected2, actual2)
 }
