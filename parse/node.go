@@ -9,6 +9,10 @@ const (
 	IDENT
 	TYPENAME
 	FUNC_CALL
+	BOOL
+	INT
+	FLOAT
+	STRING
 )
 
 type Node struct {

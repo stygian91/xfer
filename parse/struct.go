@@ -12,8 +12,8 @@ type StructValue struct {
 
 var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT, lex.LCURLY}
 
-func structErr(err error) error {
-	return fmt.Errorf("Parse struct error: %w", err)
+func structErr(err error) (Node, error) {
+	return Node{}, fmt.Errorf("Parse struct error: %w", err)
 }
 
 func Struct(parser *Parser) (Node, error) {
@@ -22,32 +22,31 @@ func Struct(parser *Parser) (Node, error) {
 
 	startTokens, err := parser.ExpectSeq(structStartKinds)
 	if err != nil {
-		return Node{}, structErr(err)
+		return structErr(err)
 	}
 
 	node.Children = append(node.Children, NewIdent(startTokens[1].Literal))
 
 	for {
-		if t, exists := parser.CurrentToken(); exists && t.Kind == lex.RCURLY {
-			parser.Eat()
+		if _, exists := parser.Optional(lex.RCURLY); exists {
 			break
 		}
 
 		identNode, err := Ident(parser)
 		if err != nil {
-			return Node{}, structErr(err)
+			return structErr(err)
 		}
 
 		typename, err := TypeName(parser)
 		if err != nil {
-			return Node{}, structErr(err)
+			return structErr(err)
 		}
 
 		// TODO: validation list parsing
 
 		_, err = parser.Expect(lex.SEMICOLON)
 		if err != nil {
-			return Node{}, structErr(err)
+			return structErr(err)
 		}
 
 		node.Children = append(node.Children, Node{
