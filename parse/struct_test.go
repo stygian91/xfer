@@ -12,7 +12,10 @@ func TestStructParse(t *testing.T) {
 	input := `struct foo {
 		x int;
 		y float; z mytype;
-	}`
+	}
+
+	struct bar { baz string; }
+	`
 
 	l := lex.NewLexer(lex.StrIter2(input))
 	tokens, err := l.Process()
@@ -22,13 +25,13 @@ func TestStructParse(t *testing.T) {
 	}
 
 	parser := p.NewParser(tokens)
-	actual, err := p.Struct(&parser)
+	actual1, err := p.Struct(&parser)
 	if err != nil {
 		t.Errorf("TestStructParse() parse.Struct() error: %s", err)
 		return
 	}
 
-	expected := p.Node{
+	expected1 := p.Node{
 		Kind:  p.STRUCT,
 		Value: p.StructValue{Export: false},
 		Children: []p.Node{
@@ -48,7 +51,29 @@ func TestStructParse(t *testing.T) {
 		},
 	}
 
-	if diff := cmp.Diff(expected, actual); diff != "" {
+	if diff := cmp.Diff(expected1, actual1); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
+	}
+
+	actual2, err := p.Struct(&parser)
+	if err != nil {
+		t.Errorf("TestStructParse() parse.Struct() error: %s", err)
+		return
+	}
+
+	expected2 := p.Node{
+		Kind:  p.STRUCT,
+		Value: p.StructValue{Export: false},
+		Children: []p.Node{
+			{Kind: p.IDENT, Value: p.IdentValue{Name: "bar"}},
+			{Kind: p.FIELD, Children: []p.Node{
+				{Kind: p.IDENT, Value: p.IdentValue{Name: "baz"}},
+				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "string"}},
+			}},
+		},
+	}
+
+	if diff := cmp.Diff(expected2, actual2); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
