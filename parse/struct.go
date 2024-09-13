@@ -10,7 +10,7 @@ type StructValue struct {
 	Export bool
 }
 
-var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT}
+var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT, lex.LCURLY}
 
 func structErr(err error) error {
 	return fmt.Errorf("Parse struct error: %w", err)
@@ -27,17 +27,13 @@ func Struct(parser *Parser) (Node, error) {
 
 	node.Children = append(node.Children, NewIdent(startTokens[1].Literal))
 
-	if _, err := parser.Expect(lex.LCURLY); err != nil {
-		return Node{}, structErr(err)
-	}
-
 	for {
 		if t, exists := parser.CurrentToken(); exists && t.Kind == lex.RCURLY {
 			parser.Eat()
 			break
 		}
 
-		token, err := parser.Expect(lex.IDENT)
+		identNode, err := Ident(parser)
 		if err != nil {
 			return Node{}, structErr(err)
 		}
@@ -56,7 +52,7 @@ func Struct(parser *Parser) (Node, error) {
 
 		node.Children = append(node.Children, Node{
 			Kind:     FIELD,
-			Children: []Node{NewIdent(token.Literal), typename},
+			Children: []Node{identNode, typename},
 		})
 	}
 
