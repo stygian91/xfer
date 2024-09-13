@@ -23,7 +23,7 @@ func checkLexResults(t *testing.T, input string, expected []l.Token) {
 }
 
 func TestSimples(t *testing.T) {
-	checkLexResults(t, "()[]{}+-*/.,=<>!", []l.Token{
+	checkLexResults(t, "()[]{}+-*/.,=<>!;", []l.Token{
 		{Kind: l.LPAREN, Literal: "(", Line: 1, Col: 1, Byte: 0},
 		{Kind: l.RPAREN, Literal: ")", Line: 1, Col: 2, Byte: 1},
 		{Kind: l.LSQUARE, Literal: "[", Line: 1, Col: 3, Byte: 2},
@@ -40,6 +40,7 @@ func TestSimples(t *testing.T) {
 		{Kind: l.LT, Literal: "<", Line: 1, Col: 14, Byte: 13},
 		{Kind: l.GT, Literal: ">", Line: 1, Col: 15, Byte: 14},
 		{Kind: l.BANG, Literal: "!", Line: 1, Col: 16, Byte: 15},
+		{Kind: l.SEMICOLON, Literal: ";", Line: 1, Col: 17, Byte: 16},
 	})
 }
 

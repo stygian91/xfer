@@ -25,10 +25,7 @@ func Struct(parser *Parser) (Node, error) {
 		return Node{}, structErr(err)
 	}
 
-	node.Children = append(node.Children, Node{
-		Kind:  IDENT,
-		Value: IdentValue{Name: startTokens[1].Literal},
-	})
+	node.Children = append(node.Children, NewIdent(startTokens[1].Literal))
 
 	if _, err := parser.Expect(lex.LCURLY); err != nil {
 		return Node{}, structErr(err)
@@ -59,7 +56,7 @@ func Struct(parser *Parser) (Node, error) {
 
 		node.Children = append(node.Children, Node{
 			Kind:     FIELD,
-			Children: []Node{{Kind: IDENT, Value: IdentValue{Name: token.Literal}}, typename},
+			Children: []Node{NewIdent(token.Literal), typename},
 		})
 	}
 
