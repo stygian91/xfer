@@ -15,6 +15,7 @@ func TestStructParse(t *testing.T) {
 	}
 
 	struct bar { baz string; }
+	struct baz {}
 	`
 
 	l := lex.NewLexer(lex.StrIter2(input))
@@ -72,4 +73,44 @@ func TestStructParse(t *testing.T) {
 	}
 
 	test.CheckDiff(t, expected2, actual2)
+
+	actual3, err := p.Struct(&parser)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	expected3 := p.Node{
+		Kind:  p.STRUCT,
+		Value: p.StructValue{Export: false},
+		Children: []p.Node{
+			{Kind: p.IDENT, Value: p.IdentValue{Name: "baz"}},
+		},
+	}
+
+	test.CheckDiff(t, expected3, actual3)
+}
+
+func TestStructParseErrors(t *testing.T) {
+	inputs := []string{
+		`struct {}`,
+		`struct foo { x int }`,
+		`struct foo {`,
+		`struct foo { x; }`,
+	}
+
+	for _, input := range inputs {
+		l := lex.NewLexer(lex.StrIter2(input))
+		tokens, err := l.Process()
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		parser := p.NewParser(tokens)
+		_, err = p.Struct(&parser)
+		if err == nil {
+			t.Errorf("Expected an error when parsing '%s'", input)
+		}
+	}
 }
