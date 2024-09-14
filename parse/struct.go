@@ -42,16 +42,31 @@ func Struct(parser *Parser) (Node, error) {
 			return structErr(err)
 		}
 
-		// TODO: validation list parsing
+		var validationNode Node
+		hasValidationNode := false
+
+		if t, exists := parser.CurrentToken(); exists && t.Kind == lex.LSQUARE {
+			validationNode, err = Validation(parser)
+			if err != nil {
+				return structErr(err)
+			}
+
+			hasValidationNode = true
+		}
 
 		_, err = parser.Expect(lex.SEMICOLON)
 		if err != nil {
 			return structErr(err)
 		}
 
+		children := []Node{identNode, typename}
+		if hasValidationNode {
+			children = append(children, validationNode)
+		}
+
 		node.Children = append(node.Children, Node{
 			Kind:     FIELD,
-			Children: []Node{identNode, typename},
+			Children: children,
 		})
 	}
 

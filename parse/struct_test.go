@@ -91,6 +91,66 @@ func TestStructParse(t *testing.T) {
 	test.CheckDiff(t, expected3, actual3)
 }
 
+func TestStructParseValidation(t *testing.T) {
+	input := `struct foo {
+		x int;
+		y float [];
+		z bool [val1(), val2(42), val3(42, "str")];
+	}
+	`
+
+	l := lex.NewLexer(lex.StrIter2(input))
+	tokens, err := l.Process()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	parser := p.NewParser(tokens)
+	actual, err := p.Struct(&parser)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	
+	expected := p.Node{
+		Kind:  p.STRUCT,
+		Value: p.StructValue{Export: false},
+		Children: []p.Node{
+			{Kind: p.IDENT, Value: p.IdentValue{Name: "foo"}},
+			{Kind: p.FIELD, Children: []p.Node{
+				{Kind: p.IDENT, Value: p.IdentValue{Name: "x"}},
+				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "int"}},
+			}},
+			{Kind: p.FIELD, Children: []p.Node{
+				{Kind: p.IDENT, Value: p.IdentValue{Name: "y"}},
+				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "float"}},
+				{Kind: p.VALIDATION},
+			}},
+			{Kind: p.FIELD, Children: []p.Node{
+				{Kind: p.IDENT, Value: p.IdentValue{Name: "z"}},
+				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "bool"}},
+				{Kind: p.VALIDATION, Children: []p.Node{
+					{Kind: p.FUNC_CALL, Children: []p.Node{
+						p.NewIdent("val1"),
+					}},
+					{Kind: p.FUNC_CALL, Children: []p.Node{
+						p.NewIdent("val2"),
+						{Kind: p.INT, Value: int64(42)},
+					}},
+					{Kind: p.FUNC_CALL, Children: []p.Node{
+						p.NewIdent("val3"),
+						{Kind: p.INT, Value: int64(42)},
+						{Kind: p.STRING, Value: "str"},
+					}},
+				}},
+			}},
+		},
+	}
+
+	test.CheckDiff(t, expected, actual)
+}
+
 func TestStructParseErrors(t *testing.T) {
 	inputs := []string{
 		`struct {}`,

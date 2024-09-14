@@ -13,6 +13,7 @@ const (
 	INT
 	FLOAT
 	STRING
+	VALIDATION
 )
 
 type Node struct {
