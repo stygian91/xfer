@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"iter"
 	"slices"
 
 	"github.com/stygian91/xfer/lex"
@@ -37,11 +38,11 @@ func (this Parser) CurrentToken() (lex.Token, bool) {
 // Returns one token ahead of the current one and a bool if the token is valid.
 // Does not advance the index.
 func (this Parser) PeekToken() (lex.Token, bool) {
-	if this.idx + 1 >= len(this.tokens) {
+	if this.idx+1 >= len(this.tokens) {
 		return lex.Token{}, false
 	}
 
-	return this.tokens[this.idx + 1], true
+	return this.tokens[this.idx+1], true
 }
 
 // Like CurrentToken() but it advances the index forward.
@@ -143,4 +144,86 @@ func (this *Parser) ExpectSeq(kinds []lex.TokenKind) ([]lex.Token, error) {
 	}
 
 	return tokens, err
+}
+
+func (this *Parser) ParseSeq(parseFuncs []ParseMultiFunc) ([]Node, error) {
+	nodes := []Node{}
+
+	for _, parseFunc := range parseFuncs {
+		for parseRes := range parseFunc(this) {
+			if parseRes.Err != nil {
+				return nodes, parseRes.Err
+			}
+
+			nodes = append(nodes, parseRes.Value)
+		}
+	}
+
+	return nodes, nil
+}
+
+func SingleToMulti(fn ParseSingleFunc) ParseMultiFunc {
+	return func(p *Parser) iter.Seq[ParseRes] {
+		return func(yield func(ParseRes) bool) {
+			node, err := fn(p)
+			yield(ParseRes{Value: node, Err: err})
+		}
+	}
+}
+
+type ParseSingleFunc func(*Parser) (Node, error)
+
+type ParseRes struct {
+	Value Node
+	Err   error
+}
+type ParseMultiFunc func(*Parser) iter.Seq[ParseRes]
+
+func CreateParseList(
+	parseEl ParseSingleFunc,
+	start, end, delimiter lex.TokenKind,
+) ParseMultiFunc {
+	return func(p *Parser) iter.Seq[ParseRes] {
+		return func(yield func(ParseRes) bool) {
+			_, err := p.Expect(start)
+			if err != nil {
+				yield(ParseRes{Err: err})
+				return
+			}
+
+			if _, exists := p.Optional(end); exists {
+				return
+			}
+
+			firstEl, err := parseEl(p)
+			if err != nil {
+				yield(ParseRes{Err: err})
+				return
+			}
+
+			if !yield(ParseRes{Value: firstEl}) {
+				return
+			}
+
+			for {
+				if _, exists := p.Optional(delimiter); !exists {
+					if _, err := p.Expect(end); err != nil {
+						yield(ParseRes{Err: err})
+						return
+					}
+					break
+				}
+
+				el, err := parseEl(p)
+				if err != nil {
+					yield(ParseRes{Err: err})
+					return
+				}
+
+				if !yield(ParseRes{Value: el}) {
+					return
+				}
+			}
+		}
+	}
 }

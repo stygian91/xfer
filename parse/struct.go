@@ -16,6 +16,7 @@ func structErr(err error) (Node, error) {
 	return Node{}, fmt.Errorf("Parse struct error: %w", err)
 }
 
+// TODO: rework with ParseFuncs
 func Struct(parser *Parser) (Node, error) {
 	node := Node{Kind: STRUCT}
 	value := StructValue{}

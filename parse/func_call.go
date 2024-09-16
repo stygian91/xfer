@@ -51,39 +51,11 @@ func FuncArg(p *Parser) (Node, error) {
 func FuncCall(p *Parser) (Node, error) {
 	node := Node{Kind: FUNC_CALL}
 
-	startTokens, err := p.ExpectSeq(funcCallStartKinds)
+	children, err := p.ParseSeq([]ParseMultiFunc{SingleToMulti(Ident), CreateParseList(FuncArg, lex.LPAREN, lex.RPAREN, lex.COMMA)})
 	if err != nil {
 		return funcCallErr(err)
 	}
 
-	node.Children = append(node.Children, NewIdent(startTokens[0].Literal))
-
-	if _, exists := p.Optional(lex.RPAREN); exists {
-		return node, nil
-	}
-
-	firstArg, err := FuncArg(p)
-	if err != nil {
-		return funcCallErr(err)
-	}
-
-	node.Children = append(node.Children, firstArg)
-
-	for {
-		if _, exists := p.Optional(lex.COMMA); !exists {
-			if _, err := p.Expect(lex.RPAREN); err != nil {
-				return funcCallErr(err)
-			}
-			break
-		}
-
-		arg, err := FuncArg(p)
-		if err != nil {
-			return funcCallErr(err)
-		}
-
-		node.Children = append(node.Children, arg)
-	}
-
+	node.Children = children
 	return node, nil
 }
