@@ -13,6 +13,7 @@ type StructValue struct {
 
 var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT}
 var structFieldParseIters = []ParseIter{NewParseListIter(StructField, lex.LCURLY, lex.RCURLY, lex.SEMICOLON)}
+var fieldFuncCallParseIters = []ParseIter{ParseFuncToIter(Ident), ParseFuncToIter(TypeName)}
 
 func structErr(err error) (Node, error) {
 	return Node{}, fmt.Errorf("Parse struct error: %w", err)
@@ -21,7 +22,7 @@ func structErr(err error) (Node, error) {
 func StructField(p *Parser) (Node, error) {
 	node := Node{Kind: FIELD}
 
-	children, err := p.ParseSeq([]ParseIter{ParseFuncToIter(Ident), ParseFuncToIter(TypeName)})
+	children, err := p.ParseSeq(fieldFuncCallParseIters)
 	if err != nil {
 		return structErr(err)
 	}
