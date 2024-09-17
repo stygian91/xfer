@@ -14,7 +14,7 @@ func TestStructParse(t *testing.T) {
 		y float; z mytype;
 	}
 
-	struct bar { baz string; }
+	struct bar { baz string }
 	struct baz {}
 	`
 
@@ -95,7 +95,7 @@ func TestStructParseValidation(t *testing.T) {
 	input := `struct foo {
 		x int;
 		y float [];
-		z bool [val1(), val2(42), val3(42, "str")];
+		z bool [val1(), val2(42), val3(42, "str")]
 	}
 	`
 
@@ -154,7 +154,6 @@ func TestStructParseValidation(t *testing.T) {
 func TestStructParseErrors(t *testing.T) {
 	inputs := []string{
 		`struct {}`,
-		`struct foo { x int }`,
 		`struct foo {`,
 		`struct foo { x; }`,
 	}

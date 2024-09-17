@@ -206,7 +206,12 @@ func CreateParseList(
 			}
 
 			for {
-				if _, exists := p.Optional(delimiter); !exists {
+				_, delimiterExists := p.Optional(delimiter)
+				if delimiterExists {
+					if _, endExists := p.Optional(end); endExists {
+						break
+					}
+				} else {
 					if _, err := p.Expect(end); err != nil {
 						yield(ParseRes{Err: err})
 						return

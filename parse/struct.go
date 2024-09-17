@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/stygian91/xfer/lex"
 )
@@ -10,13 +11,34 @@ type StructValue struct {
 	Export bool
 }
 
-var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT, lex.LCURLY}
+var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT}
 
 func structErr(err error) (Node, error) {
 	return Node{}, fmt.Errorf("Parse struct error: %w", err)
 }
 
-// TODO: rework with ParseFuncs
+func StructField(p *Parser) (Node, error) {
+	node := Node{Kind: FIELD}
+
+	children, err := p.ParseSeq([]ParseMultiFunc{SingleToMulti(Ident), SingleToMulti(TypeName)})
+	if err != nil {
+		return structErr(err)
+	}
+
+	node.Children = children
+
+	if t, exists := p.CurrentToken(); exists && t.Kind == lex.LSQUARE {
+		validationNode, err := Validation(p)
+		if err != nil {
+			return structErr(err)
+		}
+
+		node.Children = append(node.Children, validationNode)
+	}
+
+	return node, nil
+}
+
 func Struct(parser *Parser) (Node, error) {
 	node := Node{Kind: STRUCT}
 	value := StructValue{}
@@ -28,48 +50,11 @@ func Struct(parser *Parser) (Node, error) {
 
 	node.Children = append(node.Children, NewIdent(startTokens[1].Literal))
 
-	for {
-		if _, exists := parser.Optional(lex.RCURLY); exists {
-			break
-		}
-
-		identNode, err := Ident(parser)
-		if err != nil {
-			return structErr(err)
-		}
-
-		typename, err := TypeName(parser)
-		if err != nil {
-			return structErr(err)
-		}
-
-		var validationNode Node
-		hasValidationNode := false
-
-		if t, exists := parser.CurrentToken(); exists && t.Kind == lex.LSQUARE {
-			validationNode, err = Validation(parser)
-			if err != nil {
-				return structErr(err)
-			}
-
-			hasValidationNode = true
-		}
-
-		_, err = parser.Expect(lex.SEMICOLON)
-		if err != nil {
-			return structErr(err)
-		}
-
-		children := []Node{identNode, typename}
-		if hasValidationNode {
-			children = append(children, validationNode)
-		}
-
-		node.Children = append(node.Children, Node{
-			Kind:     FIELD,
-			Children: children,
-		})
+	fields, err := parser.ParseSeq([]ParseMultiFunc{CreateParseList(StructField, lex.LCURLY, lex.RCURLY, lex.SEMICOLON)})
+	if err != nil {
+		return structErr(err)
 	}
+	node.Children = slices.Concat(node.Children, fields)
 
 	node.Value = value
 	return node, nil
