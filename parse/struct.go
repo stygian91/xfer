@@ -2,7 +2,6 @@ package parse
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/stygian91/xfer/lex"
 )
@@ -11,8 +10,7 @@ type StructValue struct {
 	Export bool
 }
 
-var structStartKinds = []lex.TokenKind{lex.STRUCT, lex.IDENT}
-var structFieldParseIters = []ParseIter{NewParseListIter(StructField, lex.LCURLY, lex.RCURLY, lex.SEMICOLON)}
+var structFieldParseIters = []ParseIter{ParseFuncToIter(Ident), NewParseListIter(StructField, lex.LCURLY, lex.RCURLY, lex.SEMICOLON)}
 var fieldFuncCallParseIters = []ParseIter{ParseFuncToIter(Ident), ParseFuncToIter(TypeName)}
 
 func structErr(err error) (Node, error) {
@@ -41,20 +39,19 @@ func StructField(p *Parser) (Node, error) {
 	return node, nil
 }
 
-func Struct(parser *Parser) (Node, error) {
+func Struct(p *Parser) (Node, error) {
 	node := Node{Kind: STRUCT, Value: StructValue{}}
 
-	startTokens, err := parser.ExpectSeq(structStartKinds)
+	_, err := p.Expect(lex.STRUCT)
 	if err != nil {
 		return structErr(err)
 	}
-	node.Children = append(node.Children, NewIdent(startTokens[1].Literal))
 
-	fields, err := parser.ParseSeq(structFieldParseIters)
+	children, err := p.ParseSeq(structFieldParseIters)
 	if err != nil {
 		return structErr(err)
 	}
-	node.Children = slices.Concat(node.Children, fields)
+	node.Children = children
 
 	return node, nil
 }
