@@ -51,7 +51,7 @@ func FuncArg(p *Parser) (Node, error) {
 func FuncCall(p *Parser) (Node, error) {
 	node := Node{Kind: FUNC_CALL}
 
-	children, err := p.ParseSeq([]ParseIter{ParseFuncToIter(Ident), CreateParseList(FuncArg, lex.LPAREN, lex.RPAREN, lex.COMMA)})
+	children, err := p.ParseSeq([]ParseIter{ParseFuncToIter(Ident), NewParseListIter(FuncArg, lex.LPAREN, lex.RPAREN, lex.COMMA)})
 	if err != nil {
 		return funcCallErr(err)
 	}
