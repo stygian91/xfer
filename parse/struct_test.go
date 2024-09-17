@@ -125,7 +125,7 @@ func TestStructParseValidation(t *testing.T) {
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "y"}},
 				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "float"}},
-				{Kind: p.VALIDATION},
+				{Kind: p.VALIDATION, Children: []p.Node{}},
 			}},
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "z"}},

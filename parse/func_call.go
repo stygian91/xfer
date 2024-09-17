@@ -8,6 +8,7 @@ import (
 
 var funcCallStartKinds = []lex.TokenKind{lex.IDENT, lex.LPAREN}
 var funcArgKinds = []lex.TokenKind{lex.INT, lex.FLOAT, lex.TRUE, lex.FALSE, lex.STRING, lex.IDENT}
+var funcCallIters = []ParseIter{ParseFuncToIter(Ident), NewParseListIter(FuncArg, lex.LPAREN, lex.RPAREN, lex.COMMA)}
 
 func funcCallErr(err error) (Node, error) {
 	return Node{}, fmt.Errorf("Parse function call error: %w", err)
@@ -51,7 +52,7 @@ func FuncArg(p *Parser) (Node, error) {
 func FuncCall(p *Parser) (Node, error) {
 	node := Node{Kind: FUNC_CALL}
 
-	children, err := p.ParseSeq([]ParseIter{ParseFuncToIter(Ident), NewParseListIter(FuncArg, lex.LPAREN, lex.RPAREN, lex.COMMA)})
+	children, err := p.ParseSeq(funcCallIters)
 	if err != nil {
 		return funcCallErr(err)
 	}
