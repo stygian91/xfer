@@ -20,7 +20,7 @@ func structErr(err error) (Node, error) {
 func StructField(p *Parser) (Node, error) {
 	node := Node{Kind: FIELD}
 
-	children, err := p.ParseSeq([]ParseMultiFunc{SingleToMulti(Ident), SingleToMulti(TypeName)})
+	children, err := p.ParseSeq([]ParseIter{ParseFuncToIter(Ident), ParseFuncToIter(TypeName)})
 	if err != nil {
 		return structErr(err)
 	}
@@ -50,7 +50,7 @@ func Struct(parser *Parser) (Node, error) {
 
 	node.Children = append(node.Children, NewIdent(startTokens[1].Literal))
 
-	fields, err := parser.ParseSeq([]ParseMultiFunc{CreateParseList(StructField, lex.LCURLY, lex.RCURLY, lex.SEMICOLON)})
+	fields, err := parser.ParseSeq([]ParseIter{CreateParseList(StructField, lex.LCURLY, lex.RCURLY, lex.SEMICOLON)})
 	if err != nil {
 		return structErr(err)
 	}

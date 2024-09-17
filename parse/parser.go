@@ -146,7 +146,7 @@ func (this *Parser) ExpectSeq(kinds []lex.TokenKind) ([]lex.Token, error) {
 	return tokens, err
 }
 
-func (this *Parser) ParseSeq(parseFuncs []ParseMultiFunc) ([]Node, error) {
+func (this *Parser) ParseSeq(parseFuncs []ParseIter) ([]Node, error) {
 	nodes := []Node{}
 
 	for _, parseFunc := range parseFuncs {
@@ -162,7 +162,7 @@ func (this *Parser) ParseSeq(parseFuncs []ParseMultiFunc) ([]Node, error) {
 	return nodes, nil
 }
 
-func SingleToMulti(fn ParseSingleFunc) ParseMultiFunc {
+func ParseFuncToIter(fn ParseFunc) ParseIter {
 	return func(p *Parser) iter.Seq[ParseRes] {
 		return func(yield func(ParseRes) bool) {
 			node, err := fn(p)
@@ -171,18 +171,18 @@ func SingleToMulti(fn ParseSingleFunc) ParseMultiFunc {
 	}
 }
 
-type ParseSingleFunc func(*Parser) (Node, error)
+type ParseFunc func(*Parser) (Node, error)
 
 type ParseRes struct {
 	Value Node
 	Err   error
 }
-type ParseMultiFunc func(*Parser) iter.Seq[ParseRes]
+type ParseIter func(*Parser) iter.Seq[ParseRes]
 
 func CreateParseList(
-	parseEl ParseSingleFunc,
+	parseEl ParseFunc,
 	start, end, delimiter lex.TokenKind,
-) ParseMultiFunc {
+) ParseIter {
 	return func(p *Parser) iter.Seq[ParseRes] {
 		return func(yield func(ParseRes) bool) {
 			_, err := p.Expect(start)
