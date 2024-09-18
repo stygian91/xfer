@@ -11,7 +11,7 @@ type StructValue struct {
 }
 
 var structFieldParseIters = []ParseIter{ParseFuncToIter(Ident), NewParseListIter(StructField, lex.LCURLY, lex.RCURLY, lex.SEMICOLON)}
-var fieldFuncCallParseIters = []ParseIter{ParseFuncToIter(Ident), ParseFuncToIter(TypeName)}
+var fieldFuncCallParseIters = []ParseIter{ParseFuncToIter(Ident), ParseFuncToIter(TypeName), ParseFuncToOptionalIter(Validation)}
 
 func structErr(err error) (Node, error) {
 	return Node{}, fmt.Errorf("Parse struct error: %w", err)
@@ -26,15 +26,6 @@ func StructField(p *Parser) (Node, error) {
 	}
 
 	node.Children = children
-
-	if p.CurrentTokenIs(lex.LSQUARE) {
-		validationNode, err := Validation(p)
-		if err != nil {
-			return structErr(err)
-		}
-
-		node.Children = append(node.Children, validationNode)
-	}
 
 	return node, nil
 }

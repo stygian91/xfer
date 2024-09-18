@@ -15,6 +15,20 @@ func ParseFuncToIter(fn ParseFunc) ParseIter {
 	}
 }
 
+func ParseFuncToOptionalIter(fn ParseFunc) ParseIter {
+	return func(p *Parser) iter.Seq[ParseRes] {
+		return func(yield func(ParseRes) bool) {
+			node, err := fn(p)
+			if err != nil {
+				yield(ParseRes{Value: Node{Kind: NILKIND}, Err: nil})
+				return
+			}
+
+			yield(ParseRes{Value: node, Err: err})
+		}
+	}
+}
+
 type ParseFunc func(*Parser) (Node, error)
 
 type ParseRes struct {
