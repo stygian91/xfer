@@ -27,7 +27,7 @@ func StructField(p *Parser) (Node, error) {
 
 	node.Children = children
 
-	if t, exists := p.CurrentToken(); exists && t.Kind == lex.LSQUARE {
+	if p.CurrentTokenIs(lex.LSQUARE) {
 		validationNode, err := Validation(p)
 		if err != nil {
 			return structErr(err)

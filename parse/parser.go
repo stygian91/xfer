@@ -34,6 +34,12 @@ func (this Parser) CurrentToken() (lex.Token, bool) {
 	return this.tokens[this.idx], true
 }
 
+// Checks the current token without consuming it
+func (this Parser) CurrentTokenIs(kind lex.TokenKind) bool {
+	t, exists := this.CurrentToken()
+	return exists && t.Kind == kind
+}
+
 // Returns one token ahead of the current one and a bool if the token is valid.
 // Does not advance the index.
 func (this Parser) PeekToken() (lex.Token, bool) {
@@ -54,11 +60,7 @@ func (this *Parser) Eat() (lex.Token, bool) {
 
 func (this *Parser) Optional(kind lex.TokenKind) (lex.Token, bool) {
 	currToken, exists := this.CurrentToken()
-	if !exists {
-		return lex.Token{}, false
-	}
-
-	if currToken.Kind != kind {
+	if !exists || currToken.Kind != kind {
 		return lex.Token{}, false
 	}
 
