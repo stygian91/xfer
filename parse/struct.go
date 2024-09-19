@@ -11,7 +11,7 @@ type StructValue struct {
 }
 
 var structFieldParseIters = []ParseIter{ParseFuncToIter(Ident), NewParseListIter(StructField, lex.LCURLY, lex.RCURLY, lex.SEMICOLON)}
-var fieldFuncCallParseIters = []ParseIter{ParseFuncToIter(Ident), ParseFuncToIter(TypeName), ParseFuncToOptionalIter(Validation)}
+var fieldFuncCallParseIters = []ParseIter{ParseFuncToIter(Ident), ParseFuncToIter(TypeName), TryParseIter(Validation, lex.LSQUARE)}
 
 func structErr(err error) (Node, error) {
 	return Node{}, fmt.Errorf("Parse struct error: %w", err)

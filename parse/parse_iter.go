@@ -15,15 +15,15 @@ func ParseFuncToIter(fn ParseFunc) ParseIter {
 	}
 }
 
-func ParseFuncToOptionalIter(fn ParseFunc) ParseIter {
+func TryParseIter(fn ParseFunc, start lex.TokenKind) ParseIter {
 	return func(p *Parser) iter.Seq[ParseRes] {
 		return func(yield func(ParseRes) bool) {
-			node, err := fn(p)
-			if err != nil {
+			if !p.CurrentTokenIs(start) {
 				yield(ParseRes{Value: Node{Kind: NILKIND}, Err: nil})
 				return
 			}
 
+			node, err := fn(p)
 			yield(ParseRes{Value: node, Err: err})
 		}
 	}

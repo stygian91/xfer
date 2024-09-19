@@ -156,6 +156,7 @@ func TestStructParseErrors(t *testing.T) {
 		`struct {}`,
 		`struct foo {`,
 		`struct foo { x; }`,
+		`struct foo { x int [asd(); }`,
 	}
 
 	for _, input := range inputs {
