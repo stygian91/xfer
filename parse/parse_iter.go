@@ -29,6 +29,19 @@ func TryParseIter(fn ParseFunc, start lex.TokenKind) ParseIter {
 	}
 }
 
+func ExpectButSkipIter(kind lex.TokenKind) ParseIter {
+	return func(p *Parser) iter.Seq[ParseRes] {
+		return func(yield func(ParseRes) bool) {
+			if _, err := p.Expect(kind); err != nil {
+				yield(ParseRes{Value: Node{}, Err: err})
+				return
+			}
+
+			yield(ParseRes{Value: Node{Kind: NILKIND}, Err: nil})
+		}
+	}
+}
+
 type ParseFunc func(*Parser) (Node, error)
 
 type ParseRes struct {
