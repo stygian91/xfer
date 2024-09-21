@@ -13,6 +13,58 @@ type Token struct {
 	Value   interface{}
 }
 
+const (
+	NILKIND = iota
+	LPAREN
+	RPAREN
+	LSQUARE
+	RSQUARE
+	LCURLY
+	RCURLY
+	PLUS
+	MINUS
+	ASTERISK
+	SLASH
+	DOT
+	COMMA
+	SEMICOLON
+	EQUAL
+	LT
+	GT
+	BANG
+	IDENT
+	STRUCT
+	ENUM
+	IF
+	ELSE
+	EXPORT
+	TRUE
+	FALSE
+	INT
+	FLOAT
+	STRING
+	BOOLTYPE
+	STRINGTYPE
+	INTTYPE
+	FLOATTYPE
+)
+
+var reservedWords = map[string]TokenKind{
+	"struct": STRUCT,
+	"enum":   ENUM,
+	"if":     IF,
+	"else":   ELSE,
+	"export": EXPORT,
+	"true":   TRUE,
+	"false":  FALSE,
+	"bool":   BOOLTYPE,
+	"string": STRINGTYPE,
+	"int":    INTTYPE,
+	"float":  FLOATTYPE,
+}
+
+var strEscapable = []rune{'"', '\\', 'r', 'n'}
+
 func KindString(kind TokenKind) string {
 	switch kind {
 	case LPAREN:
@@ -96,57 +148,3 @@ func KindsString(kinds []TokenKind) string {
 
 	return sb.String()
 }
-
-const NILKIND = 0
-
-// tokens
-const (
-	LPAREN = iota + 1
-	RPAREN
-	LSQUARE
-	RSQUARE
-	LCURLY
-	RCURLY
-	PLUS
-	MINUS
-	ASTERISK
-	SLASH
-	DOT
-	COMMA
-	SEMICOLON
-	EQUAL
-	LT
-	GT
-	BANG
-	IDENT
-	STRUCT
-	ENUM
-	IF
-	ELSE
-	EXPORT
-	TRUE
-	FALSE
-	INT
-	FLOAT
-	STRING
-	BOOLTYPE
-	STRINGTYPE
-	INTTYPE
-	FLOATTYPE
-)
-
-var reservedWords = map[string]TokenKind{
-	"struct": STRUCT,
-	"enum":   ENUM,
-	"if":     IF,
-	"else":   ELSE,
-	"export": EXPORT,
-	"true":   TRUE,
-	"false":  FALSE,
-	"bool":   BOOLTYPE,
-	"string": STRINGTYPE,
-	"int":    INTTYPE,
-	"float":  FLOATTYPE,
-}
-
-var strEscapable = []rune{'"', '\\', 'r', 'n'}
