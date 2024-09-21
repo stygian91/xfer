@@ -30,11 +30,11 @@ func TestTypenameParse(t *testing.T) {
 	}
 
 	expected := []p.Node{
-		{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "int"}},
-		{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "float"}},
-		{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "string"}},
-		{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "bool"}},
-		{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "mytype"}},
+		{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.INTTYPE}}},
+		{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.FLOATTYPE}}},
+		{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.STRINGTYPE}}},
+		{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.BOOLTYPE}}},
+		{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.CUSTOMTYPE, Value: "mytype"}}},
 	}
 
 	test.CheckDiff(t, expected, actual)

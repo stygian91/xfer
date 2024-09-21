@@ -39,15 +39,15 @@ func TestStructParse(t *testing.T) {
 			{Kind: p.IDENT, Value: p.IdentValue{Name: "foo"}},
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "x"}},
-				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "int"}},
+				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.INTTYPE}}},
 			}},
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "y"}},
-				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "float"}},
+				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.FLOATTYPE}}},
 			}},
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "z"}},
-				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "mytype"}},
+				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.CUSTOMTYPE, Value: "mytype"}}},
 			}},
 		},
 	}
@@ -67,7 +67,7 @@ func TestStructParse(t *testing.T) {
 			{Kind: p.IDENT, Value: p.IdentValue{Name: "bar"}},
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "baz"}},
-				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "string"}},
+				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.STRINGTYPE}}},
 			}},
 		},
 	}
@@ -112,7 +112,7 @@ func TestStructParseValidation(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	expected := p.Node{
 		Kind:  p.STRUCT,
 		Value: p.StructValue{Export: false},
@@ -120,16 +120,16 @@ func TestStructParseValidation(t *testing.T) {
 			{Kind: p.IDENT, Value: p.IdentValue{Name: "foo"}},
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "x"}},
-				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "int"}},
+				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.INTTYPE}}},
 			}},
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "y"}},
-				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "float"}},
+				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.FLOATTYPE}}},
 				{Kind: p.VALIDATION, Children: []p.Node{}},
 			}},
 			{Kind: p.FIELD, Children: []p.Node{
 				{Kind: p.IDENT, Value: p.IdentValue{Name: "z"}},
-				{Kind: p.TYPENAME, Value: p.TypenameValue{Name: "bool"}},
+				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.BOOLTYPE}}},
 				{Kind: p.VALIDATION, Children: []p.Node{
 					{Kind: p.FUNC_CALL, Children: []p.Node{
 						p.NewIdent("val1"),
