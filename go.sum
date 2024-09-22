@@ -1,4 +1,4 @@
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/stygian91/iter-go v0.1.1 h1:FgUxJRczTOdKOj1LajO4gPYjudLX33G88UmnKYl+FXQ=
-github.com/stygian91/iter-go v0.1.1/go.mod h1:dclImOq6GBbcQPwpLCn0EAw3O/ZrFtP9aPMW9bNl4s4=
+github.com/stygian91/iter-go v0.2.0 h1:XP3TDX6Wg8EwSpe/7O5VQeB2csHSDIxlJaEouQFGOuc=
+github.com/stygian91/iter-go v0.2.0/go.mod h1:dclImOq6GBbcQPwpLCn0EAw3O/ZrFtP9aPMW9bNl4s4=

@@ -1,15 +1,16 @@
 package lex_test
 
 import (
+	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	i "github.com/stygian91/iter-go"
+	"github.com/stygian91/iter-go"
 	l "github.com/stygian91/xfer/lex"
+	"github.com/stygian91/xfer/test"
 )
 
 func checkLexResults(t *testing.T, input string, expected []l.Token) {
-	it := i.StrRuneIter2(input)
+	it := iter.StrRuneIter2(input)
 	lex := l.NewLexer(it)
 	tokens, err := lex.Process()
 
@@ -18,9 +19,7 @@ func checkLexResults(t *testing.T, input string, expected []l.Token) {
 		return
 	}
 
-	if diff := cmp.Diff(expected, tokens); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
-	}
+	test.CheckDiff(t, expected, tokens)
 }
 
 func TestSimples(t *testing.T) {
@@ -77,4 +76,47 @@ func TestString(t *testing.T) {
 	checkLexResults(t, "\"asd\\\\r\"", []l.Token{{
 		Kind: l.STRING, Literal: "\"asd\\\\r\"", Value: "asd\\r", Line: 1, Col: 1, Byte: 0,
 	}})
+}
+
+func BenchmarkStrIter(b *testing.B) {
+	inputs := []string{
+		"()[]{}+-*/.,=<>!;",
+		"123 42.69",
+		"asd if else export true false struct enum",
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, s := range inputs {
+			it := iter.StrRuneIter2(s)
+			lex := l.NewLexer(it)
+			_, err := lex.Process()
+
+			if err != nil {
+				b.Error(err)
+				return
+			}
+		}
+	}
+}
+
+func BenchmarkReaderStrIter(b *testing.B) {
+	inputs := []string{
+		"()[]{}+-*/.,=<>!;",
+		"123 42.69",
+		"asd if else export true false struct enum",
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, s := range inputs {
+			r := strings.NewReader(s)
+			it := iter.Utf8ReaderToRuneIter2(r, 4096)
+			lex := l.NewLexer(it)
+			_, err := lex.Process()
+
+			if err != nil {
+				b.Error(err)
+				return
+			}
+		}
+	}
 }
