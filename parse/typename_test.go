@@ -5,13 +5,14 @@ import (
 
 	"github.com/stygian91/xfer/lex"
 	p "github.com/stygian91/xfer/parse"
+	i "github.com/stygian91/iter-go"
 	"github.com/stygian91/xfer/test"
 )
 
 func TestTypenameParse(t *testing.T) {
 	input := `int float string bool mytype`
 
-	l := lex.NewLexer(lex.StrIter2(input))
+	l := lex.NewLexer(i.StrRuneIter2(input))
 	tokens, err := l.Process()
 	if err != nil {
 		t.Error(err)

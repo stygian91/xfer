@@ -5,6 +5,7 @@ import (
 
 	"github.com/stygian91/xfer/lex"
 	p "github.com/stygian91/xfer/parse"
+	i "github.com/stygian91/iter-go"
 	"github.com/stygian91/xfer/test"
 )
 
@@ -19,14 +20,14 @@ func TestFuncCall(t *testing.T) {
 	myvar2,
 )`
 
-	l := lex.NewLexer(lex.StrIter2(input))
+	l := lex.NewLexer(i.StrRuneIter2(input))
 	tokens, err := l.Process()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	l2 := lex.NewLexer(lex.StrIter2(input2))
+	l2 := lex.NewLexer(i.StrRuneIter2(input2))
 	tokens2, err := l2.Process()
 	if err != nil {
 		t.Error(err)
@@ -77,7 +78,7 @@ func TestFuncCall(t *testing.T) {
 func TestFuncCallErr(t *testing.T) {
 	input := `foo(123 45)`
 
-	l := lex.NewLexer(lex.StrIter2(input))
+	l := lex.NewLexer(i.StrRuneIter2(input))
 	tokens, err := l.Process()
 	if err != nil {
 		t.Error(err)

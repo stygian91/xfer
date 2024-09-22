@@ -5,6 +5,7 @@ import (
 
 	"github.com/stygian91/xfer/lex"
 	p "github.com/stygian91/xfer/parse"
+	i "github.com/stygian91/iter-go"
 	"github.com/stygian91/xfer/test"
 )
 
@@ -18,7 +19,7 @@ func TestStructParse(t *testing.T) {
 	struct baz {}
 	`
 
-	l := lex.NewLexer(lex.StrIter2(input))
+	l := lex.NewLexer(i.StrRuneIter2(input))
 	tokens, err := l.Process()
 	if err != nil {
 		t.Error(err)
@@ -99,7 +100,7 @@ func TestStructParseValidation(t *testing.T) {
 	}
 	`
 
-	l := lex.NewLexer(lex.StrIter2(input))
+	l := lex.NewLexer(i.StrRuneIter2(input))
 	tokens, err := l.Process()
 	if err != nil {
 		t.Error(err)
@@ -160,7 +161,7 @@ func TestStructParseErrors(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		l := lex.NewLexer(lex.StrIter2(input))
+		l := lex.NewLexer(i.StrRuneIter2(input))
 		tokens, err := l.Process()
 		if err != nil {
 			t.Error(err)

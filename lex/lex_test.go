@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	i "github.com/stygian91/iter-go"
 	l "github.com/stygian91/xfer/lex"
 )
 
 func checkLexResults(t *testing.T, input string, expected []l.Token) {
-	it := l.StrIter2(input)
+	it := i.StrRuneIter2(input)
 	lex := l.NewLexer(it)
 	tokens, err := lex.Process()
 
