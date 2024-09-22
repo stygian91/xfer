@@ -6,6 +6,15 @@ import (
 	"github.com/stygian91/xfer/lex"
 )
 
+type ParseFunc func(*Parser) (Node, error)
+
+type ParseRes struct {
+	Value Node
+	Err   error
+}
+
+type ParseIter func(*Parser) iter.Seq[ParseRes]
+
 func ParseFuncToIter(fn ParseFunc) ParseIter {
 	return func(p *Parser) iter.Seq[ParseRes] {
 		return func(yield func(ParseRes) bool) {
@@ -34,22 +43,10 @@ func ExpectButSkipIter(kind lex.TokenKind) ParseIter {
 		return func(yield func(ParseRes) bool) {
 			if _, err := p.Expect(kind); err != nil {
 				yield(ParseRes{Value: Node{}, Err: err})
-				return
 			}
-
-			yield(ParseRes{Value: Node{Kind: NILKIND}, Err: nil})
 		}
 	}
 }
-
-type ParseFunc func(*Parser) (Node, error)
-
-type ParseRes struct {
-	Value Node
-	Err   error
-}
-
-type ParseIter func(*Parser) iter.Seq[ParseRes]
 
 func NewParseListIter(
 	parseEl ParseFunc,
