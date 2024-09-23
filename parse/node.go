@@ -4,6 +4,7 @@ type NodeKind int
 
 const (
 	NILKIND = iota
+	PROGRAM
 	STRUCT
 	FIELD
 	IDENT

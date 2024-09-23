@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"fmt"
 	"iter"
 
 	"github.com/stygian91/xfer/lex"
@@ -14,6 +15,40 @@ type ParseRes struct {
 }
 
 type ParseIter func(*Parser) iter.Seq[ParseRes]
+
+type ParseAlternative struct {
+	Token lex.TokenKind
+	Parse ParseFunc
+}
+
+func ParseAlternativeIters(alternatives []ParseAlternative) ParseIter {
+	getExpectedKinds := func() []lex.TokenKind {
+		kinds := []lex.TokenKind{}
+		for _, alt := range alternatives {
+			kinds = append(kinds, alt.Token)
+		}
+		return kinds
+	}
+
+	return func(p *Parser) iter.Seq[ParseRes] {
+		return func(yield func(ParseRes) bool) {
+			for _, alt := range alternatives {
+				if p.CurrentTokenIs(alt.Token) {
+					node, err := alt.Parse(p)
+					yield(ParseRes{Value: node, Err: err})
+					return
+				}
+			}
+
+			currToken, _ := p.CurrentToken()
+
+			yield(ParseRes{
+				Value: Node{},
+				Err:   fmt.Errorf("Parse alternatives failed: expected one of [%s], got %s", lex.KindsString(getExpectedKinds()), lex.KindString(currToken.Kind)),
+			})
+		}
+	}
+}
 
 func ParseFuncToIter(fn ParseFunc) ParseIter {
 	return func(p *Parser) iter.Seq[ParseRes] {

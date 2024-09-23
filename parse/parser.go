@@ -9,14 +9,18 @@ import (
 
 type Parser struct {
 	tokens []lex.Token
+	idx    int
 
-	idx int
+	tree Node
 }
 
 func NewParser(tokens []lex.Token) Parser {
+	root := Node{Kind: PROGRAM, Children: []Node{}}
+
 	return Parser{
 		tokens: tokens,
 		idx:    0,
+		tree:   root,
 	}
 }
 
