@@ -3,13 +3,13 @@ package parse_test
 import (
 	"testing"
 
+	i "github.com/stygian91/iter-go"
 	"github.com/stygian91/xfer/lex"
 	p "github.com/stygian91/xfer/parse"
-	i "github.com/stygian91/iter-go"
 	"github.com/stygian91/xfer/test"
 )
 
-func TestStructParse(t *testing.T) {
+func TestProgramParse(t *testing.T) {
 	input := `struct foo {
 		x int;
 		y float; z mytype;
@@ -27,69 +27,56 @@ func TestStructParse(t *testing.T) {
 	}
 
 	parser := p.NewParser(tokens)
-	actual1, err := p.Struct(&parser)
+	actual, err := p.Program(&parser)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	expected1 := p.Node{
-		Kind:  p.STRUCT,
-		Value: p.StructValue{Export: false},
+	expected := p.Node{
+		Kind: p.PROGRAM,
 		Children: []p.Node{
-			{Kind: p.IDENT, Value: p.IdentValue{Name: "foo"}},
-			{Kind: p.FIELD, Children: []p.Node{
-				{Kind: p.IDENT, Value: p.IdentValue{Name: "x"}},
-				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.INTTYPE}}},
-			}},
-			{Kind: p.FIELD, Children: []p.Node{
-				{Kind: p.IDENT, Value: p.IdentValue{Name: "y"}},
-				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.FLOATTYPE}}},
-			}},
-			{Kind: p.FIELD, Children: []p.Node{
-				{Kind: p.IDENT, Value: p.IdentValue{Name: "z"}},
-				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.CUSTOMTYPE, Value: "mytype"}}},
-			}},
+			{
+				Kind:  p.STRUCT,
+				Value: p.StructValue{Export: false},
+				Children: []p.Node{
+					{Kind: p.IDENT, Value: p.IdentValue{Name: "foo"}},
+					{Kind: p.FIELD, Children: []p.Node{
+						{Kind: p.IDENT, Value: p.IdentValue{Name: "x"}},
+						{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.INTTYPE}}},
+					}},
+					{Kind: p.FIELD, Children: []p.Node{
+						{Kind: p.IDENT, Value: p.IdentValue{Name: "y"}},
+						{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.FLOATTYPE}}},
+					}},
+					{Kind: p.FIELD, Children: []p.Node{
+						{Kind: p.IDENT, Value: p.IdentValue{Name: "z"}},
+						{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.CUSTOMTYPE, Value: "mytype"}}},
+					}},
+				},
+			},
+			{
+				Kind:  p.STRUCT,
+				Value: p.StructValue{Export: false},
+				Children: []p.Node{
+					{Kind: p.IDENT, Value: p.IdentValue{Name: "bar"}},
+					{Kind: p.FIELD, Children: []p.Node{
+						{Kind: p.IDENT, Value: p.IdentValue{Name: "baz"}},
+						{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.STRINGTYPE}}},
+					}},
+				},
+			},
+			{
+				Kind:  p.STRUCT,
+				Value: p.StructValue{Export: false},
+				Children: []p.Node{
+					{Kind: p.IDENT, Value: p.IdentValue{Name: "baz"}},
+				},
+			},
 		},
 	}
 
-	test.CheckDiff(t, expected1, actual1)
-
-	actual2, err := p.Struct(&parser)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	expected2 := p.Node{
-		Kind:  p.STRUCT,
-		Value: p.StructValue{Export: false},
-		Children: []p.Node{
-			{Kind: p.IDENT, Value: p.IdentValue{Name: "bar"}},
-			{Kind: p.FIELD, Children: []p.Node{
-				{Kind: p.IDENT, Value: p.IdentValue{Name: "baz"}},
-				{Kind: p.TYPENAME, Children: []p.Node{{Kind: p.STRINGTYPE}}},
-			}},
-		},
-	}
-
-	test.CheckDiff(t, expected2, actual2)
-
-	actual3, err := p.Struct(&parser)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	expected3 := p.Node{
-		Kind:  p.STRUCT,
-		Value: p.StructValue{Export: false},
-		Children: []p.Node{
-			{Kind: p.IDENT, Value: p.IdentValue{Name: "baz"}},
-		},
-	}
-
-	test.CheckDiff(t, expected3, actual3)
+	test.CheckDiff(t, expected, actual)
 }
 
 func TestStructParseValidation(t *testing.T) {
