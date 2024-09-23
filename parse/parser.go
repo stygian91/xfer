@@ -156,10 +156,6 @@ func (this *Parser) ParseSeq(parseIters []ParseIter) ([]Node, error) {
 				return nodes, parseRes.Err
 			}
 
-			if parseRes.Value.Kind == NILKIND {
-				continue
-			}
-
 			nodes = append(nodes, parseRes.Value)
 		}
 	}

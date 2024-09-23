@@ -28,7 +28,6 @@ func TryParseIter(fn ParseFunc, start lex.TokenKind) ParseIter {
 	return func(p *Parser) iter.Seq[ParseRes] {
 		return func(yield func(ParseRes) bool) {
 			if !p.CurrentTokenIs(start) {
-				yield(ParseRes{Value: Node{Kind: NILKIND}, Err: nil})
 				return
 			}
 
